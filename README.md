@@ -1,11 +1,34 @@
-<div align="center">
+# استوديو البيان (Al-Bayan Studio) 🚀
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+بيئة تطوير متكاملة (IDE) للغة برمجة عربية مفتوحة المصدر.
 
-  <h1>Built with AI Studio</h2>
+## 🌟 المميزات
+- **لغة عربية بالكامل:** كتابة الأكواد بكلمات عربية (مهمة، لو، اطبع).
+- **ترجمة فورية:** تحويل الكود إلى Python, JavaScript, Java, HTML.
+- **وسائط متعددة:** توليد صور، موسيقى، وفيديو باستخدام مكتبات مفتوحة المصدر.
+- **نظام ملفات:** محاكاة قراءة وكتابة الملفات وامتداد خاص `.byn`.
+- **ذكاء اصطناعي:** تكامل مع نماذج لغوية لتوليد النصوص والترجمة.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## 🛠️ التشغيل
+1. تثبيت الحزم:
+```bash
+npm install
+```
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+2. تشغيل السيرفر المحلي:
+```bash
+npm run dev
+```
 
-</div>
+3. بناء المشروع للإنتاج:
+```bash
+npm run build
+```
+
+## 📂 الهيكلية
+- `src/services/compiler.ts`: المترجم الأساسي للغة.
+- `src/services/runtime.ts`: محرك التشغيل داخل المتصفح.
+- `src/components/`: مكونات واجهة المستخدم (المحرر، المخرجات، الحاسبة).
+
+---
+v2.2.0 | مفتوح المصدر

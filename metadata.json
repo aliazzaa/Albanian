@@ -1,0 +1,6 @@
+{
+  "name": "Al-Bayan Studio (محرر البيان)",
+  "description": "بيئة تطوير لغة 'البيان' العربية. لغة برمجة مستقلة ومفتوحة المصدر تتوافق مع بايثون وجافا، وتستخدم مكتبات مجانية لتوليد الوسائط.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

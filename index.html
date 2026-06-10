@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Al-Bayan Studio | محرر البيان</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+      body {
+        font-family: 'Cairo', sans-serif;
+        background-color: #0f172a;
+        color: #e2e8f0;
+      }
+      .font-mono {
+        font-family: 'Fira Code', monospace;
+      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1e293b; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #475569; 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #64748b; 
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "globals": "https://aistudiocdn.com/globals@^16.5.0",
+    "@eslint/js": "https://aistudiocdn.com/@eslint/js@^9.39.1",
+    "eslint-plugin-react-hooks": "https://aistudiocdn.com/eslint-plugin-react-hooks@^7.0.1",
+    "eslint-plugin-react-refresh": "https://aistudiocdn.com/eslint-plugin-react-refresh@^0.4.24",
+    "typescript-eslint": "https://aistudiocdn.com/typescript-eslint@^8.48.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <!-- الربط بملف المدخل الرئيسي للمشروع -->
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
