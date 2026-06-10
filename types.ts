@@ -6,12 +6,36 @@ export interface HtmlElement {
   style?: string;
 }
 
+export interface AndroidWidget {
+  type: 'text' | 'button' | 'input' | 'image' | 'card' | 'switch' | 'progress' | 'video' | 'audio' | 'gallery';
+  id: string;
+  label: string;
+  style?: string;
+  url?: string;
+  value?: string | number;
+}
+
+export interface AndroidScreen {
+  name: string;
+  widgets: AndroidWidget[];
+}
+
+export interface AndroidAppResult {
+  appName: string;
+  packageName: string;
+  screens: AndroidScreen[];
+  builtTime: string;
+  apkSize: string;
+  apkName: string;
+}
+
 export interface ExecutionResult {
   output: string[];
   generatedImages?: string[]; // Base64 strings
   generatedAudio?: string[]; // Base64 strings (simulation or actual)
   generatedVideos?: { frames: string[], prompt: string }[]; // Video simulation (Frames)
   generatedHtmlElements?: HtmlElement[]; // Generated DOM elements for Web Preview
+  generatedAndroidApp?: AndroidAppResult; // For simulated native Android rendering
   error?: string;
 }
 
@@ -25,6 +49,7 @@ export interface TranspilationResult {
   go?: string;
   rust?: string;
   php?: string;
+  kotlin?: string;
 }
 
 export enum CodeMode {

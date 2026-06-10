@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Layers, Zap, Book, Download, FolderKanban } from 'lucide-react';
+import { BookOpen, Layers, Zap, Book, Download, FolderKanban, Smartphone } from 'lucide-react';
 import { EXAMPLES, SYNTAX_MAP } from '../constants';
 
 interface SidebarProps {
@@ -10,6 +10,7 @@ interface SidebarProps {
   onOpenDocs: () => void;
   onDownloadExtension: () => void;
   onOpenProjectManager: () => void;
+  onOpenTemplates: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -18,7 +19,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   toggle, 
   onOpenDocs, 
   onDownloadExtension,
-  onOpenProjectManager
+  onOpenProjectManager,
+  onOpenTemplates
 }) => {
 
   const handleDownloadDictionary = () => {
@@ -96,6 +98,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                 >
                   <Book size={20} />
                   <span className="font-bold">دليل الاستخدام</span>
+                </button>
+
+                <button 
+                  onClick={() => {
+                    onOpenTemplates();
+                    if (window.innerWidth < 1024) toggle();
+                  }}
+                  className="w-full flex items-center gap-2 bg-gradient-to-l from-teal-950/30 to-emerald-950/30 hover:from-teal-900/40 hover:to-emerald-900/40 text-teal-300 border border-teal-900/50 p-3 rounded-lg transition-all"
+                  title="قوالب تطبيق أندرويد جاهزة بلغة البيان"
+                >
+                  <Smartphone size={20} className="text-teal-400" />
+                  <span className="font-bold">قوالب الأندرويد 🤖</span>
                 </button>
 
                 <button 

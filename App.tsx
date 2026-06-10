@@ -1,13 +1,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Code2, FileJson, Menu, Layers, FileCode, FileText, Bug, Puzzle, Globe, Square } from 'lucide-react';
+import { Play, Code2, FileJson, Menu, Layers, FileCode, FileText, Bug, Puzzle, Globe, Square, Sparkles, Cpu, Brain } from 'lucide-react';
 import CodeEditor from './components/CodeEditor';
 import Output from './components/Output';
+import AICopilot from './components/AICopilot';
 import Sidebar from './components/Sidebar';
 import Documentation from './components/Documentation';
 import Debugger from './components/Debugger';
 import ProjectModal from './components/ProjectModal';
 import ExtensionsModal from './components/ExtensionsModal';
+import { AndroidTemplatesLibrary } from './components/AndroidTemplatesLibrary';
+import { BayanToAndroidOptimizer } from './components/BayanToAndroidOptimizer';
+import { BayanAIToolkit } from './components/BayanAIToolkit';
 import { AlBayanCompiler } from './services/compiler';
 import { runAlBayanCode, DebugController } from './services/runtime';
 import { ExecutionResult, TranspilationResult, CodeMode, DebugState, FileSystemItem } from './types';
@@ -23,7 +27,11 @@ function App() {
   const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isExtModalOpen, setIsExtModalOpen] = useState(false);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const [isOptimizerOpen, setIsOptimizerOpen] = useState(false);
+  const [isAIToolkitOpen, setIsAIToolkitOpen] = useState(false);
   const [transpiledTab, setTranspiledTab] = useState<'python' | 'js' | 'java' | 'html' | 'cpp' | 'csharp' | 'go' | 'rust' | 'php'>('python');
+  const [rightActiveTab, setRightActiveTab] = useState<'output' | 'ai'>('output');
 
   // Project Structure State
   const [projectStructure, setProjectStructure] = useState<FileSystemItem[]>([
@@ -214,6 +222,7 @@ function App() {
           case 'go': content = transpilation.go || ''; filename = "main.go"; break;
           case 'rust': content = transpilation.rust || ''; filename = "main.rs"; break;
           case 'php': content = transpilation.php || ''; filename = "index.php"; break;
+          case 'kotlin': content = transpilation.kotlin || ''; filename = "MainActivity.kt"; break;
           case 'js': default: content = transpilation.javascript; filename = "script.js"; break;
       }
       
@@ -257,6 +266,40 @@ function App() {
         onClose={() => setIsExtModalOpen(false)}
       />
 
+      <BayanToAndroidOptimizer
+        isOpen={isOptimizerOpen}
+        onClose={() => setIsOptimizerOpen(false)}
+        code={code}
+        onUpdateCode={setCode}
+      />
+
+      <BayanAIToolkit
+        isOpen={isAIToolkitOpen}
+        onClose={() => setIsAIToolkitOpen(false)}
+        code={code}
+        onUpdateCode={setCode}
+        onInstantRun={(newCode) => {
+          setCode(newCode);
+          setRightActiveTab('output');
+          setTimeout(() => {
+            handleRun(false);
+          }, 100);
+        }}
+      />
+
+      <AndroidTemplatesLibrary 
+        isOpen={isTemplatesOpen}
+        onClose={() => setIsTemplatesOpen(false)}
+        onLoadTemplate={setCode}
+        onInstantRun={(newCode) => {
+          setCode(newCode);
+          setRightActiveTab('output');
+          setTimeout(() => {
+            handleRun(false);
+          }, 100);
+        }}
+      />
+
       <Sidebar 
         onLoadExample={setCode} 
         isOpen={isSidebarOpen} 
@@ -264,6 +307,7 @@ function App() {
         onOpenDocs={() => setIsDocsOpen(true)}
         onDownloadExtension={handleDownloadExtension}
         onOpenProjectManager={() => setIsProjectModalOpen(true)}
+        onOpenTemplates={() => setIsTemplatesOpen(true)}
       />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
@@ -329,6 +373,24 @@ function App() {
               <Puzzle size={18} />
               <span className="hidden sm:inline">الإضافات</span>
             </button>
+
+            <button
+              onClick={() => setIsAIToolkitOpen(true)}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:text-emerald-300 transition-all shadow-md active:scale-95"
+              title="بوابة توطين وأدوات الذكاء الاصطناعي بلغة البيان"
+            >
+              <Brain size={18} className="animate-pulse" />
+              <span>توطين الذكاء 🧠</span>
+            </button>
+
+            <button
+              onClick={() => setIsOptimizerOpen(true)}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-bold text-amber-400 bg-amber-500/10 border border-amber-500/25 hover:bg-amber-500/20 hover:border-amber-500/40 hover:text-amber-300 transition-all shadow-md active:scale-95"
+              title="معزز الأكواد للأندرويد"
+            >
+              <Cpu size={18} className="animate-pulse" />
+              <span>معزز الأداء ⚡</span>
+            </button>
           </div>
         </header>
 
@@ -350,7 +412,7 @@ function App() {
                 <div className="w-full h-full bg-[#1e293b] rounded-lg border border-slate-700 overflow-hidden flex flex-col shadow-inner">
                     <div className="flex bg-slate-800 border-b border-slate-700 overflow-x-auto shrink-0 justify-between items-center pr-2">
                         <div className="flex custom-scrollbar overflow-x-auto">
-                            {['python', 'js', 'java', 'html', 'cpp', 'csharp', 'go', 'rust', 'php'].map(lang => (
+                            {['python', 'js', 'java', 'html', 'cpp', 'csharp', 'go', 'rust', 'php', 'kotlin'].map(lang => (
                                 <button 
                                 key={lang}
                                 onClick={() => setTranspiledTab(lang as any)}
@@ -359,6 +421,7 @@ function App() {
                                 {lang === 'python' && <FileJson size={14} />}
                                 {lang === 'js' && <FileCode size={14} />}
                                 {lang === 'html' && <Globe size={14} />}
+                                {lang === 'kotlin' && <FileCode size={14} />}
                                 {['java', 'cpp', 'csharp', 'go', 'rust', 'php'].includes(lang) && <Layers size={14} />}
                                 {lang.toUpperCase()}
                             </button>
@@ -388,6 +451,7 @@ function App() {
                             {transpiledTab === 'go' && (transpilation?.go || "// الانتظار...")}
                             {transpiledTab === 'rust' && (transpilation?.rust || "// الانتظار...")}
                             {transpiledTab === 'php' && (transpilation?.php || "// الانتظار...")}
+                            {transpiledTab === 'kotlin' && (transpilation?.kotlin || "// الانتظار...")}
                         </pre>
                     </div>
                 </div>
@@ -460,9 +524,53 @@ function App() {
                )}
           </div>
 
-          {/* Right Panel (Output) */}
-          <div className="flex-1 lg:w-[40%] h-1/2 lg:h-full min-h-0">
-            <Output result={result} isLoading={isProcessing && !debugState.isDebugging} />
+          {/* Right Panel (Output & AI Copilot Tabs) */}
+          <div className="flex-1 lg:w-[40%] h-1/2 lg:h-full min-h-0 flex flex-col gap-3">
+            <div className="flex bg-slate-900 border border-slate-800 p-1.5 rounded-xl self-start gap-1 shrink-0 select-none">
+              <button
+                onClick={() => setRightActiveTab('output')}
+                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                  rightActiveTab === 'output' 
+                    ? 'bg-gradient-to-l from-emerald-500 to-teal-600 text-white shadow-lg' 
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                }`}
+              >
+                شاشة النتائج والمعاينة
+              </button>
+              <button
+                onClick={() => setRightActiveTab('ai')}
+                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                  rightActiveTab === 'ai' 
+                    ? 'bg-gradient-to-l from-purple-600 to-indigo-600 text-white shadow-lg' 
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                }`}
+              >
+                <Sparkles size={13} className={rightActiveTab === 'ai' ? 'animate-pulse text-yellow-300' : 'text-purple-400'} />
+                رفيق البرمجة الذكي
+              </button>
+            </div>
+
+            <div className="flex-1 min-h-0">
+              {rightActiveTab === 'output' ? (
+                <Output result={result} isLoading={isProcessing && !debugState.isDebugging} />
+              ) : (
+                <AICopilot
+                  currentCode={code}
+                  onApplyCode={(newCode) => {
+                    setCode(newCode);
+                    setRightActiveTab('output');
+                  }}
+                  onInstantRun={(newCode) => {
+                    setCode(newCode);
+                    setRightActiveTab('output');
+                    setTimeout(() => {
+                      handleRun(false); // directly run the code
+                    }, 100);
+                  }}
+                  compilationError={result?.error}
+                />
+              )}
+            </div>
           </div>
         </div>
       </main>
