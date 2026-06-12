@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Code2, Play, Copy, ArrowRight, User, Terminal, Check, Cpu, Battery, Gauge, RotateCcw, Activity, HeartPulse, AlertTriangle, CheckCircle, RefreshCw, Zap, Atom, Download, Bot, FolderOpen, Plus, Trash2, Search, HelpCircle, HardDrive } from 'lucide-react';
+import { Send, Sparkles, Code2, Play, Copy, ArrowRight, User, Terminal, Check, Cpu, Battery, Gauge, RotateCcw, Activity, HeartPulse, AlertTriangle, CheckCircle, RefreshCw, Zap, Atom, Download, Bot, FolderOpen, Plus, Trash2, Search, HelpCircle, HardDrive, Wifi, WifiOff } from 'lucide-react';
 import { generateMediaAsset } from '../services/openMediaService';
 
 interface AICopilotProps {
@@ -178,6 +178,39 @@ const AICopilot: React.FC<AICopilotProps> = ({
 نهاية`);
   const [regError, setRegError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // PWA & Network Offline/Online Monitoring States
+  const [isOnline, setIsOnline] = useState<boolean>(typeof window !== 'undefined' ? window.navigator.onLine : true);
+  const [swActive, setSwActive] = useState<boolean>(false);
+
+  useEffect(() => {
+    const updateOnlineStatus = () => {
+      setIsOnline(window.navigator.onLine);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+    }
+
+    // Periodically inspect if Service Worker controller is active
+    const checkServiceWorker = () => {
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+        setSwActive(!!navigator.serviceWorker.controller);
+      }
+    };
+
+    checkServiceWorker();
+    const interval = setInterval(checkServiceWorker, 3000);
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('online', updateOnlineStatus);
+        window.removeEventListener('offline', updateOnlineStatus);
+      }
+      clearInterval(interval);
+    };
+  }, []);
 
   // ==========================================
   // AI-Agent-Hub Implementation
@@ -2321,6 +2354,47 @@ ${currentCode}
             <p className="text-[11.5px] text-slate-400 leading-relaxed text-right">
               توفر لغة البيان سياجاً سيادياً حوسبياً يهدف لتشغيل نماذج الذكاء التوليدي والوكلاء البرمجية محلياً بالكامل. يمكنك من خلال هذه اللوحة، العمل خطوة بخطوة لتهيئة وتفعيل بيئة التشغيل المستقلة والمجانية 100% على جهازك الشخصي، مما يحقق حماية مطلقة للخصوصية وسرعة مدمجة برعاية النواة المحلية وعوائد صفرية لانبعاثات الطاقة السحابية.
             </p>
+
+            {/* PWA / Offine Capabilities Hub Indicators */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-900/40 p-4 rounded-xl border border-slate-850">
+              <div className="space-y-1">
+                <span className="text-[10px] text-slate-500 font-bold block">مؤشر الاتصال والدخول:</span>
+                <div className="flex items-center gap-2 mt-1">
+                  {isOnline ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold bg-emerald-950/30 text-emerald-450 border border-emerald-900/30">
+                      <Wifi size={12} className="text-emerald-450" />
+                      <span>متصل بالخادم والشبكة</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold bg-amber-950/40 text-amber-500 border border-amber-900/30 animate-pulse">
+                      <WifiOff size={12} className="text-amber-500" />
+                      <span>يعمل محلياً بنجاح (دون اتصال) 📡</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-[10px] text-slate-500 font-bold block">حالة تخزين التطبيق التقدمي (PWA):</span>
+                <div className="flex items-center gap-2 mt-1">
+                  {swActive ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold bg-sky-950/40 text-sky-400 border border-sky-900/40">
+                      <Zap size={11} className="text-sky-400 animate-bounce" />
+                      <span>وكيل الخدمة نشط ومحمّل بذاكرة الجهاز 💾</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                      <RefreshCw size={11} className="animate-spin text-slate-400" />
+                      <span>جاري تسجيل التخزين المؤقت المحلي...</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="sm:col-span-2 text-[10.5px] text-slate-400 border-t border-slate-850 pt-2.5 leading-relaxed">
+                ℹ️ <strong>ميزة الـ PWA الفعالة:</strong> يقوم المتصفح حالياً بتخزين Al-Bayan Studio محلياً بالكامل بفضل الـ <code>Service Worker</code> المطور. يمكنك تثبيت التطبيق على سطح المكتب أو شاشة الهاتف لفتحه وتشغيل كامل مترجم "البيان"، وصوتيات "Tone.js"، ووكيل المعالجة بخصوصية تامة ودون اتصال بالإنترنت في أي وقت!
+              </div>
+            </div>
 
             {/* Progress calculation */}
             {(() => {

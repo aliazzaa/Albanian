@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Code2, FileJson, Menu, Layers, FileCode, FileText, Bug, Puzzle, Globe, Square, Sparkles, Cpu, Brain } from 'lucide-react';
+import { Play, Code2, FileJson, Menu, Layers, FileCode, FileText, Bug, Puzzle, Globe, Square, Sparkles, Cpu, Brain, ChevronDown, Terminal } from 'lucide-react';
 import CodeEditor from './components/CodeEditor';
 import Output from './components/Output';
 import AICopilot from './components/AICopilot';
@@ -32,6 +32,10 @@ function App() {
   const [isAIToolkitOpen, setIsAIToolkitOpen] = useState(false);
   const [transpiledTab, setTranspiledTab] = useState<'python' | 'js' | 'java' | 'html' | 'cpp' | 'csharp' | 'go' | 'rust' | 'php'>('python');
   const [rightActiveTab, setRightActiveTab] = useState<'output' | 'ai'>('output');
+  
+  // Mobile UI Responsive States
+  const [activeMobileTab, setActiveMobileTab] = useState<'editor' | 'transpiled' | 'output' | 'ai'>('editor');
+  const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
 
   // Project Structure State
   const [projectStructure, setProjectStructure] = useState<FileSystemItem[]>([
@@ -312,72 +316,79 @@ function App() {
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         
-        <header className="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900/50 backdrop-blur-sm z-10 shrink-0">
-          <div className="flex items-center gap-4">
+        <header className="h-16 border-b border-slate-800 flex items-center justify-between px-4 sm:px-6 bg-slate-900/50 backdrop-blur-sm z-10 shrink-0">
+          <div className="flex items-center gap-3">
              <button 
               className="lg:hidden p-2 text-slate-400 hover:text-white"
               onClick={() => setIsSidebarOpen(true)}
+              id="sidebar-toggle-btn"
             >
-              <Menu size={24} />
+              <Menu size={22} />
             </button>
-            <div className="hidden sm:block">
-              <h2 className="font-bold text-lg">Al-Bayan Studio | استوديو البيان</h2>
-              <div className="flex gap-2">
-                <span className="text-[10px] text-emerald-400 bg-emerald-900/30 px-2 py-0.5 rounded border border-emerald-900">.byn</span>
-                <span className="text-[10px] text-blue-400 bg-blue-900/30 px-2 py-0.5 rounded border border-blue-900">Auto-Docs</span>
+            <div>
+              <h2 className="font-bold text-base sm:text-lg text-transparent bg-clip-text bg-gradient-to-l from-emerald-400 to-blue-400">استوديو البيان</h2>
+              <div className="flex gap-1.5 mt-0.5">
+                <span className="text-[9px] text-emerald-400 bg-emerald-900/30 px-1.5 py-0.2 rounded border border-emerald-900 font-mono">.byn</span>
+                <span className="hidden xs:inline-block text-[9px] text-blue-400 bg-blue-900/30 px-1.5 py-0.2 rounded border border-blue-900">Auto-Docs</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+             {/* Desktop Navigation Switchers */}
              <button
               onClick={() => setMode(CodeMode.EDITOR)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 mode === CodeMode.EDITOR 
                   ? 'bg-slate-800 text-white' 
                   : 'text-slate-400 hover:text-white'
               }`}
+              id="desktop-editor-tab"
             >
               <Code2 size={18} />
-              <span className="hidden sm:inline">المحرر</span>
+              <span>المحرر</span>
             </button>
             
             <button
               onClick={() => setMode(CodeMode.TRANSPILED)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 mode === CodeMode.TRANSPILED 
                   ? 'bg-slate-800 text-white' 
                   : 'text-slate-400 hover:text-white'
               }`}
+              id="desktop-transpiled-tab"
             >
               <Globe size={18} />
-              <span className="hidden sm:inline">الترجمات والأكواد</span>
+              <span>الترجمات والأكواد</span>
             </button>
 
             <button
               onClick={handleGenerateDocs}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               title="توثيق الكود تلقائياً"
+              id="desktop-docs-btn"
             >
               <FileText size={18} />
-              <span className="hidden sm:inline">توثيق</span>
+              <span>توثيق</span>
             </button>
 
             <button
               onClick={() => setIsExtModalOpen(!isExtModalOpen)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isExtModalOpen ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
               title="الإضافات"
+              id="desktop-extensions-btn"
             >
               <Puzzle size={18} />
-              <span className="hidden sm:inline">الإضافات</span>
+              <span>الإضافات</span>
             </button>
 
             <button
               onClick={() => setIsAIToolkitOpen(true)}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:text-emerald-300 transition-all shadow-md active:scale-95"
+              className="hidden lg:flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:text-emerald-300 transition-all shadow-md active:scale-95"
               title="بوابة توطين وأدوات الذكاء الاصطناعي بلغة البيان"
+              id="desktop-ai-toolkit-btn"
             >
               <Brain size={18} className="animate-pulse" />
               <span>توطين الذكاء 🧠</span>
@@ -385,19 +396,89 @@ function App() {
 
             <button
               onClick={() => setIsOptimizerOpen(true)}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-bold text-amber-400 bg-amber-500/10 border border-amber-500/25 hover:bg-amber-500/20 hover:border-amber-500/40 hover:text-amber-300 transition-all shadow-md active:scale-95"
+              className="hidden lg:flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-bold text-amber-400 bg-amber-500/10 border border-amber-500/25 hover:bg-amber-500/20 hover:border-amber-500/40 hover:text-amber-300 transition-all shadow-md active:scale-95"
               title="معزز الأكواد للأندرويد"
+              id="desktop-performance-btn"
             >
               <Cpu size={18} className="animate-pulse" />
               <span>معزز الأداء ⚡</span>
             </button>
+
+            {/* Mobile Actions Dropdown menu */}
+            <div className="relative lg:hidden">
+              <button
+                onClick={() => setIsToolsMenuOpen(!isToolsMenuOpen)}
+                className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700/80 border border-slate-700 active:scale-95 transition-all shadow-sm"
+                id="mobile-tools-dropdown-btn"
+              >
+                <span>أدوات البيان ⚙️</span>
+                <ChevronDown size={14} className={`transition-transform duration-200 ${isToolsMenuOpen ? 'rotate-180': ''}`} />
+              </button>
+
+              {isToolsMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setIsToolsMenuOpen(false)} />
+                  <div className="absolute left-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-40 p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <button
+                      onClick={() => {
+                        handleGenerateDocs();
+                        setIsToolsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-right"
+                      id="mobile-tool-docs"
+                    >
+                      <span className="font-semibold">التوثيق التلقائي للملف</span>
+                      <FileText size={15} className="text-slate-400" />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsExtModalOpen(true);
+                        setIsToolsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-right"
+                      id="mobile-tool-extensions"
+                    >
+                      <span className="font-semibold">إضافات المتصفح والمحرر</span>
+                      <Puzzle size={15} className="text-slate-400" />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsAIToolkitOpen(true);
+                        setIsToolsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs text-emerald-400 hover:bg-emerald-500/10 transition-colors text-right font-bold"
+                      id="mobile-tool-ai"
+                    >
+                      <span>توطين وأدوات الذكاء</span>
+                      <Brain size={15} className="text-emerald-400 animate-pulse" />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsOptimizerOpen(true);
+                        setIsToolsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs text-amber-400 hover:bg-amber-500/10 transition-colors text-right font-bold"
+                      id="mobile-tool-performance"
+                    >
+                      <span>معزز الأداء وتقليل الوزن</span>
+                      <Cpu size={15} className="text-amber-400" />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </header>
 
         <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 overflow-hidden bg-[#0f172a]">
           
           {/* Left Panel (Editor / Transpiled) */}
-          <div className="flex-1 h-1/2 lg:h-full flex flex-col min-h-0 gap-4">
+          <div className={`flex-1 flex flex-col min-h-0 gap-4 h-full ${
+            ['output', 'ai'].includes(activeMobileTab) ? 'hidden lg:flex' : 'flex'
+          }`}>
             <div className="flex-1 flex flex-col min-h-0">
                 {mode === CodeMode.EDITOR ? (
                 <CodeEditor 
@@ -469,8 +550,8 @@ function App() {
             )}
           </div>
 
-          {/* Center Control Bar */}
-          <div className="flex lg:flex-col justify-center items-center gap-4 bg-slate-900/50 p-2 rounded-xl border border-slate-800 shrink-0 z-20 shadow-xl lg:h-full">
+          {/* Center Control Bar (Desktop Only) */}
+          <div className="hidden lg:flex lg:flex-col justify-center items-center gap-4 bg-slate-900/50 p-2 rounded-xl border border-slate-800 shrink-0 z-20 shadow-xl lg:h-full">
                
                {/* Main Run Button */}
                <button
@@ -482,6 +563,7 @@ function App() {
                       : 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-110 active:scale-95'
                   }`}
                   title="تشغيل البرنامج (Run)"
+                  id="desktop-main-run-btn"
                 >
                    {isProcessing && !debugMode ? (
                       <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -489,7 +571,6 @@ function App() {
                       <Play size={28} fill="currentColor" className="ml-1" />
                    )}
                    
-                   {/* Tooltip */}
                    <span className="absolute right-full mr-3 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none hidden lg:block">
                       تشغيل
                    </span>
@@ -505,6 +586,7 @@ function App() {
                       : 'bg-slate-800 text-orange-400 hover:bg-slate-700 hover:text-orange-300'
                   }`}
                   title="تصحيح الكود (Debug)"
+                  id="desktop-main-debug-btn"
                 >
                    <Bug size={24} />
                    <span className="absolute right-full mr-3 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none hidden lg:block">
@@ -518,6 +600,7 @@ function App() {
                       onClick={handleStop}
                       className="group flex items-center justify-center p-3 rounded-xl bg-red-900/80 text-red-200 hover:bg-red-600 hover:text-white transition-all duration-300 animate-in fade-in zoom-in"
                       title="إيقاف إجباري"
+                      id="desktop-main-stop-btn"
                    >
                        <Square size={24} fill="currentColor" />
                    </button>
@@ -525,8 +608,11 @@ function App() {
           </div>
 
           {/* Right Panel (Output & AI Copilot Tabs) */}
-          <div className="flex-1 lg:w-[40%] h-1/2 lg:h-full min-h-0 flex flex-col gap-3">
-            <div className="flex bg-slate-900 border border-slate-800 p-1.5 rounded-xl self-start gap-1 shrink-0 select-none">
+          <div className={`flex-1 lg:w-[40%] flex flex-col gap-3 min-h-0 h-full ${
+            ['editor', 'transpiled'].includes(activeMobileTab) ? 'hidden lg:flex' : 'flex'
+          }`}>
+            {/* Desktop Tabs Header */}
+            <div className="hidden lg:flex bg-slate-900 border border-slate-800 p-1.5 rounded-xl self-start gap-1 shrink-0 select-none">
               <button
                 onClick={() => setRightActiveTab('output')}
                 className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
@@ -534,6 +620,7 @@ function App() {
                     ? 'bg-gradient-to-l from-emerald-500 to-teal-600 text-white shadow-lg' 
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
                 }`}
+                id="desktop-right-output-tab"
               >
                 شاشة النتائج والمعاينة
               </button>
@@ -544,6 +631,7 @@ function App() {
                     ? 'bg-gradient-to-l from-purple-600 to-indigo-600 text-white shadow-lg' 
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
                 }`}
+                id="desktop-right-ai-tab"
               >
                 <Sparkles size={13} className={rightActiveTab === 'ai' ? 'animate-pulse text-yellow-300' : 'text-purple-400'} />
                 رفيق البرمجة الذكي
@@ -559,10 +647,12 @@ function App() {
                   onApplyCode={(newCode) => {
                     setCode(newCode);
                     setRightActiveTab('output');
+                    setActiveMobileTab('output');
                   }}
                   onInstantRun={(newCode) => {
                     setCode(newCode);
                     setRightActiveTab('output');
+                    setActiveMobileTab('output');
                     setTimeout(() => {
                       handleRun(false); // directly run the code
                     }, 100);
@@ -573,6 +663,111 @@ function App() {
             </div>
           </div>
         </div>
+
+        {/* Floating Actions on Mobile (Run & Debug Overlay) */}
+        <div className="lg:hidden fixed bottom-20 left-4 z-45 flex flex-col gap-2.5">
+          {activeMobileTab === 'editor' && !isProcessing && (
+            <button
+              onClick={() => {
+                handleRun(true);
+                setActiveMobileTab('output');
+                setRightActiveTab('output');
+              }}
+              className="w-11 h-11 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-orange-400 shadow-xl active:scale-90 transition-all font-bold"
+              title="تصحيح برمجيات البيان"
+              id="mobile-floating-debug-btn"
+            >
+              <Bug size={18} />
+            </button>
+          )}
+
+          {/* Main Play / Stop Button on Mobile */}
+          <button
+            onClick={() => {
+              if (isProcessing || debugMode) {
+                handleStop();
+              } else {
+                handleRun(false);
+                setActiveMobileTab('output');
+                setRightActiveTab('output');
+              }
+            }}
+            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl active:scale-90 transition-all ${
+              isProcessing || debugMode
+                ? 'bg-rose-600 text-white animate-pulse shadow-rose-900/50'
+                : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-emerald-950/40'
+            }`}
+            id="mobile-floating-run-btn"
+          >
+            {isProcessing && !debugMode ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            ) : isProcessing || debugMode ? (
+              <Square size={20} fill="currentColor" />
+            ) : (
+              <Play size={20} fill="currentColor" className="ml-1" />
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Navigation Tab Bar */}
+        <div className="lg:hidden h-16 border-t border-slate-800 bg-slate-900/90 backdrop-blur-md flex justify-around items-center px-2 shrink-0 z-30 select-none pb-safe">
+            <button
+              onClick={() => {
+                setActiveMobileTab('editor');
+                setMode(CodeMode.EDITOR);
+              }}
+              className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                activeMobileTab === 'editor' ? 'text-emerald-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
+              }`}
+              id="mobile-tab-editor"
+            >
+              <Code2 size={20} />
+              <span className="text-[10px]">المحرر</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveMobileTab('transpiled');
+                setMode(CodeMode.TRANSPILED);
+              }}
+              className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                activeMobileTab === 'transpiled' ? 'text-blue-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
+              }`}
+              id="mobile-tab-transpiled"
+            >
+              <Globe size={20} />
+              <span className="text-[10px]">الترجمات</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveMobileTab('output');
+                setRightActiveTab('output');
+              }}
+              className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all relative ${
+                activeMobileTab === 'output' ? 'text-sky-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
+              }`}
+              id="mobile-tab-output"
+            >
+              <Terminal size={20} />
+              <span className="text-[10px]">المخرجات</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveMobileTab('ai');
+                setRightActiveTab('ai');
+              }}
+              className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                activeMobileTab === 'ai' ? 'text-purple-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
+              }`}
+              id="mobile-tab-ai"
+            >
+              <Sparkles size={20} className={activeMobileTab === 'ai' ? 'text-purple-400 animate-pulse' : 'text-slate-400'} />
+              <span className="text-[10px]">الرفيق والذكاء</span>
+            </button>
+        </div>
+
       </main>
     </div>
   );
