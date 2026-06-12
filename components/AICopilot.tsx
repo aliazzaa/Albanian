@@ -125,8 +125,38 @@ const AICopilot: React.FC<AICopilotProps> = ({
       author: 'سرية الحوسبة المستدامة',
       runsCount: 57,
       size: '22KB'
+    },
+    {
+      id: 'local-ai-localization-agent',
+      name: 'منسق خطة توطين الذكاء الاصطناعي وذكاء البيان',
+      description: 'يقود تفعيل الذكاء الموطن محلياً بالكامل خطوة بخطوة على العتاد الشخصي لصفر انبعاثات وخصوصية وموثوقية رقمية مطلقة وبناء سياج كامل للسيادة الرقمية للبيان.',
+      category: 'logic',
+      code: `مهمة محقق_توطين_الذكاء(شيفرة):
+    اطبع("🌍 فحص مسار وخطة توطين الذكاء الاصطناعي...")
+    إذا شيفرة.يحتوي("ذكاء.عامل_مستقل") == صحيح:
+        اطبع("✅ رائع! هناك تفعيل لعامل مستقل وبحاجة لتنسيق الخطوات محلياً.")
+    نهاية
+    طبع_خطوات_التوطين()
+نهاية`,
+      status: 'registered',
+      version: '2.1.0',
+      author: 'رابطة ذكاء البيان المفتوحة',
+      runsCount: 205,
+      size: '14KB'
     }
   ]);
+
+  const [localizationSteps, setLocalizationSteps] = useState([
+    { id: 1, text: 'تحضير العتاد وتأهيل البيئة المحلية (تنزيل Node.js & JDK 17+)', done: true },
+    { id: 2, text: 'استيراد وتشغيل منصة ومترجم لغة البيان محلياً بالكامل', done: false },
+    { id: 3, text: 'تنزيل النماذج اللغوية الحرة مفتوحة التوطين للغة العربية (Qwen-2.5-Coder / Llama-3-8B GGUF)', done: false },
+    { id: 4, text: 'ضبط منافذ الربط المغلقة للخصوصية وسياج البيانات (Ollama: http://localhost:11434)', done: false },
+    { id: 5, text: 'انطلاق التشغيل المحلي للوكلاء الحرة بمعدل صفر انبعاثات حوسبية وصفر كلفة شبكية', done: false }
+  ]);
+
+  const handleToggleLocalizationStep = (id: number) => {
+    setLocalizationSteps(prev => prev.map(step => step.id === id ? { ...step, done: !step.done } : step));
+  };
 
   const [downloadingAgentId, setDownloadingAgentId] = useState<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
@@ -345,6 +375,25 @@ ${refactoredCode}
 
 (يمكنك نسخ هذا الكود أو تطبيقه بالمحرر عبر رفيق البيان كمومياً!)`;
       } 
+      else if (targetAgent.id === 'local-ai-localization-agent') {
+        generatedOutput = `🇸🇦 [دستور وتوجيهات خطة توطين الذكاء الاصطناعي - وكيل التوطين الذكي v${targetAgent.version}]
+
+مستوى جاهزية توطين النظام المكتشف حالياً: 🔋 ممتازة ومستديرة بالكامل!
+
+🛠️ فحص الكود البرمجي المكتوب بالمحرر:
+- تم فحص الأوامر البنيوية ووجدنا أنها جاهزة للتحويل والتشغيل لصفر انبعاثات وسحابة مغلقة.
+- الكود خالٍ تماماً من أي تسريبات سحابية أو قنوات غير مرخصة (100% مستقل للسيادة الوطنية).
+
+📋 الخطوات الإجرائية التنفيذية الموصى بها لتفعيل الكود محلياً:
+١. قم بتهيئة عتادك المحلي (تثبيت Node.js 18+ و Java SDK 17+).
+٢. حمل وتثبيت Ollama محلياً (https://ollama.com) وسحب نموذج "Qwen-2.5-Coder" أو "Llama-3" عبر الأمر:
+   ollama run qwen2.5-coder:1.5b
+٣. قم بتشغيل المنصة لتشير الخصوصية إلى نقطة الربط المغلقة: http://localhost:11434/v1
+٤. شغّل المترجم الفصاحي لتقييد الكود، واحصد مخرجات المعالجة مباشرة من الرقاقات المدمجة بلا اتصال بالإنترنت!
+
+🍀 توجيه بيئي مستقبلي:
+البرمجة بلغة البيان تمنحك استقلالية تامة، بحيث يتحرك الوكيل محلياً لترشيد المعالجة، مما يحول دون إجهاد السحابة ويحمي ثروات البيانات الوطنية بجدارة وبما يتطابق مع السيادة الحوسبية الاستثنائية.`;
+      }
       else {
         generatedOutput = `⚛️ [تقرير الدمج والترجمة الكمية من وكيلك: ${targetAgent.name}]
 
@@ -2255,6 +2304,122 @@ ${currentCode}
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Plan Section */}
+          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800/85 pb-2">
+              <div className="flex items-center gap-2">
+                <Cpu size={15} className="text-sky-400 animate-pulse" />
+                <h4 className="font-bold text-xs text-slate-100 font-sans">
+                  🇸🇦 الخطة المفتوحة لتوطين الذكاء الاصطناعي ووكلاء لغة البيان
+                </h4>
+              </div>
+              <span className="text-[10px] text-amber-500 font-bold bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/10">محدثة ومجانية</span>
+            </div>
+
+            <p className="text-[11.5px] text-slate-400 leading-relaxed text-right">
+              توفر لغة البيان سياجاً سيادياً حوسبياً يهدف لتشغيل نماذج الذكاء التوليدي والوكلاء البرمجية محلياً بالكامل. يمكنك من خلال هذه اللوحة، العمل خطوة بخطوة لتهيئة وتفعيل بيئة التشغيل المستقلة والمجانية 100% على جهازك الشخصي، مما يحقق حماية مطلقة للخصوصية وسرعة مدمجة برعاية النواة المحلية وعوائد صفرية لانبعاثات الطاقة السحابية.
+            </p>
+
+            {/* Progress calculation */}
+            {(() => {
+              const doneCount = localizationSteps.filter(s => s.done).length;
+              const totalCount = localizationSteps.length;
+              const percentage = Math.round((doneCount / totalCount) * 100);
+              return (
+                <div className="bg-slate-900/60 p-3.5 rounded-xl border border-slate-850 space-y-2">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-slate-400">مستوى السيادة وجاهزية الجهاز الحالية للتوطين:</span>
+                    <span className="font-mono font-bold text-sky-400 text-xs">{percentage}%</span>
+                  </div>
+                  <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-900 font-sans">
+                    <div 
+                      className="bg-gradient-to-r from-sky-500 via-sky-400 to-emerald-400 h-full rounded-full transition-all duration-500" 
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] pt-1">
+                    {percentage === 100 ? (
+                      <span className="text-emerald-400 flex items-center gap-1">
+                        <CheckCircle size={10} className="text-emerald-405" />
+                        <span>تهانينا الفائقة! لقد أنجزت بروتوكول التوطين بالكامل؛ جهازك مؤهل لتشغيل الوكلاء بخصوصية مطلقة.</span>
+                      </span>
+                    ) : (
+                      <span className="text-slate-500">
+                        ⏳ يرجى إتمام خطوات الدليل بالأسفل لرفع كفاءة وجاهزية جهازك وسحب النماذج اللغوية محلياً ومجاناً.
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Checklist details */}
+            <div className="space-y-2.5">
+              {localizationSteps.map(step => (
+                <div 
+                  key={step.id}
+                  onClick={() => handleToggleLocalizationStep(step.id)}
+                  className={`border rounded-xl p-3 flex flex-col gap-2 transition-all cursor-pointer select-none ${
+                    step.done 
+                      ? "border-emerald-950/30 bg-emerald-950/10 hover:bg-emerald-950/20" 
+                      : "border-slate-850 bg-slate-900/40 hover:bg-slate-900/70"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-4 h-4 rounded flex items-center justify-center border transition-all shrink-0 ${
+                        step.done 
+                          ? "bg-emerald-600 border-emerald-500 text-white" 
+                          : "border-slate-700 bg-slate-950"
+                      }`}>
+                        {step.done && <Check size={11} strokeWidth={3} />}
+                      </span>
+                      <span className={`text-[11px] font-bold ${step.done ? "text-emerald-400 line-through opacity-85" : "text-slate-200"}`}>
+                        الخطوة {step.id}: {step.text}
+                      </span>
+                    </div>
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                      step.done ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {step.done ? 'مكتمل' : 'مطلوب عمله'}
+                    </span>
+                  </div>
+
+                  {/* Step Expanded Detail Explication */}
+                  <div className="mr-6 pl-2 border-r-2 border-slate-800/80 pr-2.5 py-1 text-[10.5px] leading-relaxed text-slate-400">
+                    {step.id === 1 && (
+                      <span>
+                        لتهيئة بيئة جهازك، تأكد من تثبيت منصة <strong>Node.js (الإصدار 18 فما فوق)</strong> ومترجم <strong>Java SDK 17+</strong> في نظام تشغيل جهازك. تعتمد أدوات الكومبايلر للغات مثل الجافا والـ Kotlin على وجود آلة جافا الافتراضية JVM لتجميع وتصدير ملفات تراكب العتاد بسلاسة وسرعة فائقة.
+                      </span>
+                    )}
+                    {step.id === 2 && (
+                      <span>
+                        يمكنك استدعاء مترجم لغة البيان وتجهيزه عبر تنزيل مكتبات الربط وتضمين الملفات محلياً. استخدم حزمة مترجم <code>AlBayanCompiler.ts</code> كبوابة قراءة مدمجة محايدة، وحفزّ منطق الاستيراد مستقل الأطراف لمعالجة البارامترات دون عبء خارجي.
+                      </span>
+                    )}
+                    {step.id === 3 && (
+                      <span>
+                        قم بتنزيل تراكبات ونماذج الذكاء الاصطناعي الحرة الخفيفة والداعمة للغة العربية مثل <strong>Qwen-2.5-Coder (1.5B/3B)</strong> أو <strong>Llama-3-8B</strong> بصيغة GGUF الموفرة للرام، لتتمكن من تشغيل كامل مهام الإرشاد وتوليد الشيفرات محلياً على بطاقة الرسوميات (GPU) الخاصة بك.
+                      </span>
+                    )}
+                    {step.id === 4 && (
+                      <span>
+                        قم بتثبيت مشغل النماذج مفتوح المصدر <strong>Ollama</strong> من الموقع الرسمي <code>ollama.com</code>، ثم افتح الطرفية وشغل الأمر التالي: <br />
+                        <code className="bg-slate-950 text-sky-400 border border-slate-800 px-1.5 py-0.5 rounded mt-1 font-mono text-[9px] inline-block text-left" dir="ltr">ollama run qwen2.5-coder:1.5b</code><br />
+                        يقوم هذا بفتح بوابة خادم محلية بالكامل على العنوان <code>http://localhost:11434/v1</code> متوافقة تماماً مع معايير السيادة الحوسبية والتأمين.
+                      </span>
+                    )}
+                    {step.id === 5 && (
+                      <span>
+                        الآن، عند تفعيل رفيق الروابط ومعالج "مركز الوكلاء"، يتم مطابقة الأوامر وصقل الأكواد وتوفير الموارد محلياً بالكلية على عتادك وبصفر كلفة حوسبية، وصفر سعة انبعاثات كربونية للغد، صانعاً درع أمان لا يخترق للسيادة الوطنية الرقمية وحصانة بياناتك.
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Register Custom Agent Toggle / Button */}

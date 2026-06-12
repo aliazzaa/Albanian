@@ -383,7 +383,7 @@ export class AlBayanCompiler {
 
      const jsLogic = this.toJavaScript(code);
 
-     return `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
@@ -418,7 +418,7 @@ export class AlBayanCompiler {
         ${jsLogic}
     </script>
 </body>
-</html>\`;
+</html>`;
   }
 
   private toCpp(code: string): string {
