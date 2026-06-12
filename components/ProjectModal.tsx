@@ -205,9 +205,9 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div 
-        className="bg-slate-900 w-full max-w-4xl h-[80vh] rounded-2xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden relative"
+        className="bg-slate-900 w-full max-w-4xl h-full sm:h-[80vh] rounded-none sm:rounded-2xl border-0 sm:border border-slate-700 shadow-2xl flex flex-col overflow-hidden relative"
         dir="rtl"
       >
         {/* Header */}

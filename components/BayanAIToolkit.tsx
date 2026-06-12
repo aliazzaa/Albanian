@@ -253,8 +253,8 @@ export const BayanAIToolkit: React.FC<BayanAIToolkitProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in" dir="rtl">
-      <div className="bg-[#090f1d] border border-emerald-500/20 rounded-2xl w-full max-w-6xl h-[88vh] flex flex-col overflow-hidden shadow-2xl shadow-emerald-950/20">
+    <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-0 sm:p-4 animate-fade-in" dir="rtl">
+      <div className="bg-[#090f1d] border-0 sm:border border-emerald-500/20 rounded-none sm:rounded-2xl w-full max-w-6xl h-full sm:h-[88vh] flex flex-col overflow-hidden shadow-2xl shadow-emerald-950/20">
         
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/40 shrink-0">

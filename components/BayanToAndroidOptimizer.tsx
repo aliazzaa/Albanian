@@ -172,8 +172,8 @@ export const BayanToAndroidOptimizer: React.FC<BayanToAndroidOptimizerProps> = (
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4" dir="rtl">
-      <div className="bg-[#0b1329] border border-slate-800 rounded-2xl w-full max-w-6xl h-[88vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-0 sm:p-4" dir="rtl">
+      <div className="bg-[#0b1329] border-0 sm:border border-slate-800 rounded-none sm:rounded-2xl w-full max-w-6xl h-full sm:h-[88vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
         
         {/* Header bar */}
         <div className="px-6 py-4 border-b border-slate-850 flex items-center justify-between bg-slate-900/40 shrink-0">
