@@ -38,6 +38,62 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #64748b; 
       }
+
+      /* Print Media Styles for Native PDF Generation */
+      @media print {
+        body, html {
+          background: #ffffff !important;
+          color: #000000 !important;
+          font-family: 'Cairo', 'Inter', sans-serif !important;
+          direction: rtl !important;
+        }
+        /* Hide UI controls, editor, compile lists, sidebars during print */
+        header, aside, .no-print, nav, button, footer {
+          display: none !important;
+        }
+        /* Make sure the report covers the full width and has no dark card colors */
+        .printing-document-sheet {
+          background: #ffffff !important;
+          color: #000000 !important;
+          border: none !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          max-width: 100% !important;
+          width: 100% !important;
+        }
+        .printing-document-sheet h1,
+        .printing-document-sheet h2,
+        .printing-document-sheet h3 {
+          color: #000000 !important;
+          border-color: #cbd5e1 !important;
+        }
+        .printing-document-sheet p,
+        .printing-document-sheet span,
+        .printing-document-sheet td,
+        .printing-document-sheet li,
+        .printing-document-sheet div {
+          color: #1e293b !important;
+        }
+        .print-only-title {
+          padding-top: 4cm !important;
+          border-bottom: 2px solid #000000 !important;
+          page-break-after: always;
+        }
+        .print-page {
+          page-break-after: always;
+          page-break-inside: avoid;
+          padding-top: 1cm;
+        }
+        th {
+          color: #000000 !important;
+        }
+        code, pre {
+          background-color: #f8fafc !important;
+          color: #0f172a !important;
+          border: 1px solid #e2e8f0 !important;
+        }
+      }
     </style>
   <script type="importmap">
 {

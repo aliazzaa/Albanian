@@ -112,3 +112,70 @@ export interface FileSystemItem {
   children?: FileSystemItem[]; // Only for folders
   isOpen?: boolean; // UI state for folders
 }
+
+export enum TokenType {
+  VAR = 'VAR',
+  PRINT = 'PRINT',
+  IF = 'IF',
+  ELSE = 'ELSE',
+  FOR = 'FOR',
+  IN = 'IN',
+  RANGE = 'RANGE',
+  REPEAT = 'REPEAT',
+  TIMES = 'TIMES',
+  FUNC = 'FUNC',
+  MAIN = 'MAIN',
+  CLASS = 'CLASS',
+  EXTENDS = 'EXTENDS',
+  END = 'END',
+  IMPORT = 'IMPORT',
+  TRY = 'TRY',
+  CATCH = 'CATCH',
+  THIS = 'THIS',
+  NEW = 'NEW',
+  IDENTIFIER = 'IDENTIFIER',
+  NUMBER = 'NUMBER',
+  STRING = 'STRING',
+  ASSIGN = 'ASSIGN',
+  PLUS = 'PLUS',
+  MINUS = 'MINUS',
+  MULTIPLY = 'MULTIPLY',
+  DIVIDE = 'DIVIDE',
+  EQ = 'EQ',
+  NEQ = 'NEQ',
+  LT = 'LT',
+  GT = 'GT',
+  LTE = 'LTE',
+  GTE = 'GTE',
+  LPAREN = 'LPAREN',
+  RPAREN = 'RPAREN',
+  COMMA = 'COMMA',
+  COLON = 'COLON',
+  DOT = 'DOT',
+  NEWLINE = 'NEWLINE',
+  EOF = 'EOF'
+}
+
+export interface Token {
+  type: TokenType;
+  value: string;
+  line: number;
+}
+
+export interface ASTNode {
+  type: string;
+  line: number;
+  [key: string]: any;
+}
+
+export interface Diagnostic {
+  severity: "error" | "warning" | "info";
+  message: string;
+  line: number;
+  codeSnippet?: string;
+  fixSuggestion?: {
+    type: "replace" | "insert" | "delete";
+    text: string;
+    description: string;
+  };
+}

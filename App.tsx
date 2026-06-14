@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Code2, FileJson, Menu, Layers, FileCode, FileText, Bug, Puzzle, Globe, Square, Sparkles, Cpu, Brain, ChevronDown, Terminal, Wand2 } from 'lucide-react';
+import { Play, Code2, FileJson, Menu, Layers, FileCode, FileText, Bug, Puzzle, Globe, Square, Sparkles, Cpu, Brain, ChevronDown, Terminal, Wand2, AlertTriangle, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import CodeEditor from './components/CodeEditor';
 import Output from './components/Output';
 import AICopilot from './components/AICopilot';
@@ -13,9 +13,16 @@ import { AndroidTemplatesLibrary } from './components/AndroidTemplatesLibrary';
 import { BayanToAndroidOptimizer } from './components/BayanToAndroidOptimizer';
 import { BayanAIToolkit } from './components/BayanAIToolkit';
 import { BayanAppGenerator } from './components/BayanAppGenerator';
+import { BayanVmVisualizer } from './components/BayanVmVisualizer';
+import { BayanWasmVisualizer } from './components/BayanWasmVisualizer';
+import { BayanRoadmapWithArchitecture } from './components/BayanRoadmapWithArchitecture';
+import { BayanInteractiveReport } from './components/BayanInteractiveReport';
 import { AlBayanCompiler } from './services/compiler';
+import { AlBayanLexer, AlBayanParser, AlBayanSemanticAnalyzer } from './services/parser';
+import { AlBayanBytecodeCompiler, AlBayanVMInterpreter } from './services/vm';
+import { AlBayanWasmCompiler } from './services/wasm';
 import { runAlBayanCode, DebugController } from './services/runtime';
-import { ExecutionResult, TranspilationResult, CodeMode, DebugState, FileSystemItem } from './types';
+import { ExecutionResult, TranspilationResult, CodeMode, DebugState, FileSystemItem, Diagnostic } from './types';
 import { EXAMPLES } from './constants';
 
 function App() {
@@ -32,7 +39,7 @@ function App() {
   const [isOptimizerOpen, setIsOptimizerOpen] = useState(false);
   const [isAIToolkitOpen, setIsAIToolkitOpen] = useState(false);
   const [isAppGeneratorOpen, setIsAppGeneratorOpen] = useState(false);
-  const [transpiledTab, setTranspiledTab] = useState<'python' | 'js' | 'java' | 'html' | 'cpp' | 'csharp' | 'go' | 'rust' | 'php'>('python');
+  const [transpiledTab, setTranspiledTab] = useState<'python' | 'js' | 'java' | 'html' | 'cpp' | 'csharp' | 'go' | 'rust' | 'php' | 'kotlin' | 'ast' | 'vm' | 'wasm' | 'roadmap' | 'report'>('python');
   const [rightActiveTab, setRightActiveTab] = useState<'output' | 'ai'>('output');
   
   // Mobile UI Responsive States
@@ -233,6 +240,51 @@ function App() {
           case 'rust': content = transpilation.rust || ''; filename = "main.rs"; break;
           case 'php': content = transpilation.php || ''; filename = "index.php"; break;
           case 'kotlin': content = transpilation.kotlin || ''; filename = "MainActivity.kt"; break;
+          case 'ast': {
+              try {
+                  const lexer = new AlBayanLexer(code);
+                  const tokens = lexer.tokenize();
+                  const parser = new AlBayanParser(tokens);
+                  content = JSON.stringify(parser.parse(), null, 2);
+              } catch(e: any) {
+                  content = e.message || "Error generating AST";
+              }
+              filename = "ast.json";
+              break;
+          }
+          case 'vm': {
+              try {
+                  const lexer = new AlBayanLexer(code);
+                  const tokens = lexer.tokenize();
+                  const parser = new AlBayanParser(tokens);
+                  const ast = parser.parse();
+                  const compiler = new AlBayanBytecodeCompiler();
+                  content = JSON.stringify(compiler.compile(ast), null, 2);
+              } catch(e: any) {
+                  content = e.message || "Error generating Bytecode";
+              }
+              filename = "bytecode.json";
+              break;
+          }
+          case 'wasm': {
+              try {
+                  const lexer = new AlBayanLexer(code);
+                  const tokens = lexer.tokenize();
+                  const parser = new AlBayanParser(tokens);
+                  const ast = parser.parse();
+                  const compiler = new AlBayanWasmCompiler();
+                  content = compiler.compile(ast);
+              } catch(e: any) {
+                  content = e.message || "Error generating WebAssembly";
+              }
+              filename = "bayan.wat";
+              break;
+          }
+          case 'roadmap': {
+              content = "خارطة طريق تطوير لغة البيان الهيكلية كبديل ريادي كامل للترجمة الحرفية";
+              filename = "roadmap.txt";
+              break;
+          }
           case 'js': default: content = transpilation.javascript; filename = "script.js"; break;
       }
       
@@ -243,6 +295,30 @@ function App() {
       a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
+  };
+
+  const handleApplyDiagnosticFix = (lineNum: number, fixText: string, diagnosticMessage: string) => {
+      const lines = code.split('\n');
+      if (lines[lineNum - 1] === undefined) return;
+      
+      const originalLine = lines[lineNum - 1];
+      
+      if (diagnosticMessage.includes('الكلمة') || diagnosticMessage.includes('ددت كتابة')) {
+          const match = diagnosticMessage.match(/'([^']+)'/);
+          const wrongWord = match ? match[1] : '';
+          
+          if (wrongWord && originalLine.includes(wrongWord)) {
+              lines[lineNum - 1] = originalLine.replace(wrongWord, fixText);
+          } else {
+              lines[lineNum - 1] = fixText;
+          }
+      } else if (diagnosticMessage.includes('إسناد مباشر')) {
+          lines[lineNum - 1] = originalLine.replace(/^(\s*)/, `$1عرف `);
+      } else {
+          lines[lineNum - 1] = fixText;
+      }
+      
+      setCode(lines.join('\n'));
   };
 
   const handleLoadFileFromProject = (content: string) => {
@@ -582,7 +658,7 @@ function App() {
                 <div className="w-full h-full bg-[#1e293b] rounded-lg border border-slate-700 overflow-hidden flex flex-col shadow-inner">
                     <div className="flex bg-slate-800 border-b border-slate-700 overflow-x-auto shrink-0 justify-between items-center pr-2">
                         <div className="flex custom-scrollbar overflow-x-auto">
-                            {['python', 'js', 'java', 'html', 'cpp', 'csharp', 'go', 'rust', 'php', 'kotlin'].map(lang => (
+                            {['python', 'js', 'java', 'html', 'cpp', 'csharp', 'go', 'rust', 'php', 'kotlin', 'ast', 'vm', 'wasm', 'roadmap', 'report'].map(lang => (
                                 <button 
                                 key={lang}
                                 onClick={() => setTranspiledTab(lang as any)}
@@ -593,7 +669,12 @@ function App() {
                                 {lang === 'html' && <Globe size={14} />}
                                 {lang === 'kotlin' && <FileCode size={14} />}
                                 {['java', 'cpp', 'csharp', 'go', 'rust', 'php'].includes(lang) && <Layers size={14} />}
-                                {lang.toUpperCase()}
+                                {lang === 'ast' && <Cpu size={14} className="text-emerald-400" />}
+                                {lang === 'vm' && <Terminal size={14} className="text-cyan-405 animate-spin" style={{ animationDuration: '6s' }} />}
+                                {lang === 'wasm' && <Sparkles size={14} className="text-emerald-300" />}
+                                {lang === 'roadmap' && <Wand2 size={14} className="text-amber-400" />}
+                                {lang === 'report' && <FileText size={14} className="text-yellow-400" />}
+                                {lang === 'ast' ? 'شجرة الإعراب AST' : lang === 'vm' ? 'الآلة الافتراضية للبيان ⚡' : lang === 'wasm' ? 'مترجم الويب WebAssembly 🚀' : lang === 'roadmap' ? 'خارطة التطور المتقدمة 🗺️' : lang === 'report' ? 'التقرير الشامل 🎓' : lang.toUpperCase()}
                             </button>
                             ))}
                         </div>
@@ -611,18 +692,182 @@ function App() {
                     </div>
                     
                     <div className="flex-1 overflow-auto bg-black/30 p-4 custom-scrollbar">
-                        <pre className="text-slate-300 font-mono text-sm whitespace-pre-wrap leading-relaxed" dir="ltr">
-                            {transpiledTab === 'python' && (transpilation?.python || "# الانتظار...")}
-                            {transpiledTab === 'js' && (transpilation?.javascript || "// الانتظار...")}
-                            {transpiledTab === 'java' && (transpilation?.java || "// الانتظار...")}
-                            {transpiledTab === 'html' && (transpilation?.html || "<!-- الانتظار... -->")}
-                            {transpiledTab === 'cpp' && (transpilation?.cpp || "// الانتظار...")}
-                            {transpiledTab === 'csharp' && (transpilation?.csharp || "// الانتظار...")}
-                            {transpiledTab === 'go' && (transpilation?.go || "// الانتظار...")}
-                            {transpiledTab === 'rust' && (transpilation?.rust || "// الانتظار...")}
-                            {transpiledTab === 'php' && (transpilation?.php || "// الانتظار...")}
-                            {transpiledTab === 'kotlin' && (transpilation?.kotlin || "// الانتظار...")}
-                        </pre>
+                        {!['ast', 'vm', 'wasm', 'roadmap', 'report'].includes(transpiledTab) ? (
+                            <pre className="text-slate-300 font-mono text-sm whitespace-pre-wrap leading-relaxed" dir="ltr">
+                                {transpiledTab === 'python' && (transpilation?.python || "# الانتظار...")}
+                                {transpiledTab === 'js' && (transpilation?.javascript || "// الانتظار...")}
+                                {transpiledTab === 'java' && (transpilation?.java || "// الانتظار...")}
+                                {transpiledTab === 'html' && (transpilation?.html || "<!-- الانتظار... -->")}
+                                {transpiledTab === 'cpp' && (transpilation?.cpp || "// الانتظار...")}
+                                {transpiledTab === 'csharp' && (transpilation?.csharp || "// الانتظار...")}
+                                {transpiledTab === 'go' && (transpilation?.go || "// الانتظار...")}
+                                {transpiledTab === 'rust' && (transpilation?.rust || "// الانتظار...")}
+                                {transpiledTab === 'php' && (transpilation?.php || "// الانتظار...")}
+                                {transpiledTab === 'kotlin' && (transpilation?.kotlin || "// الانتظار...")}
+                            </pre>
+                        ) : transpiledTab === 'vm' ? (
+                            <BayanVmVisualizer code={code} />
+                        ) : transpiledTab === 'wasm' ? (
+                            <BayanWasmVisualizer code={code} />
+                        ) : transpiledTab === 'report' ? (
+                            <BayanInteractiveReport />
+                        ) : transpiledTab === 'ast' ? (() => {
+                            try {
+                                const lexer = new AlBayanLexer(code);
+                                const tokens = lexer.tokenize();
+                                const parser = new AlBayanParser(tokens);
+                                const ast = parser.parse();
+                                
+                                const analyzer = new AlBayanSemanticAnalyzer();
+                                const diagnostics = analyzer.analyze(ast);
+
+                                const errors = diagnostics.filter(d => d.severity === 'error');
+                                const warnings = diagnostics.filter(d => d.severity === 'warning');
+                                const infos = diagnostics.filter(d => d.severity === 'info');
+
+                                return (
+                                    <div className="flex flex-col gap-6 text-slate-200 h-full animate-fade-in" dir="rtl">
+                                        {/* Dynamic Diagnostics Hub */}
+                                        <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-xl flex flex-col gap-3 shadow-md">
+                                            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center border-b border-slate-800 pb-3 justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Brain className="text-yellow-400 w-5 h-5 shrink-0 animate-pulse" />
+                                                    <div>
+                                                        <h4 className="text-sm font-bold text-slate-100">فاحص السلامة الدلالي والتشخيص الذكي (Semantic & Style Diagnostics Scan)</h4>
+                                                        <p className="text-[10px] text-slate-400">تحليل معجمي لغوي نشط يفحص توافق المتغيرات، التدفقات، الأخطاء الإملائية، والعمليات الاستباقية لتسهيل التطوير العربي.</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-wrap gap-2 text-[10px]">
+                                                    <span className="bg-red-500/10 text-red-400 px-2.5 py-1 rounded-full border border-red-500/20 font-bold">{errors.length} أخطاء نقض</span>
+                                                    <span className="bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20 font-bold">{warnings.length} تحذيرات</span>
+                                                    <span className="bg-cyan-500/10 text-cyan-400 px-2.5 py-1 rounded-full border border-cyan-500/20 font-bold">{infos.length} ملاحظات إرشاد</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Report Result Status */}
+                                            {diagnostics.length === 0 ? (
+                                                <div className="flex gap-3 items-center bg-emerald-950/20 border border-emerald-900/30 p-4 rounded-xl text-emerald-300">
+                                                    <CheckCircle className="text-emerald-400 w-8 h-8 shrink-0" />
+                                                    <div className="text-right">
+                                                        <h5 className="text-xs font-bold text-emerald-200">التقرير: كود نظيف وخالٍ تماماً من المزالق (Clean Compile!)</h5>
+                                                        <p className="text-[10px] text-emerald-400/80 mt-0.5 leading-relaxed">لم يرصد المحلل الدلالي أي متغيرات غير معرّفة، عمليات قسمة على الصفر، أو تكرارات غير فعّالة في ملفك الحالي. الكود ممتثل لأمان الحوسبة الهيكلية.</p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-2.5 max-h-[220px] overflow-auto custom-scrollbar pr-1">
+                                                    {diagnostics.map((diag, index) => {
+                                                        const isError = diag.severity === 'error';
+                                                        const isValueWarn = diag.severity === 'warning';
+                                                        
+                                                        return (
+                                                            <div 
+                                                                key={index} 
+                                                                className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-3 p-3 rounded-lg border text-right transition-all ${
+                                                                    isError 
+                                                                        ? 'bg-red-950/10 border-red-900/40 hover:bg-red-950/25' 
+                                                                        : isValueWarn 
+                                                                            ? 'bg-amber-950/10 border-amber-900/40 hover:bg-amber-950/25' 
+                                                                            : 'bg-cyan-950/10 border-cyan-900/40 hover:bg-cyan-950/25'
+                                                                }`}
+                                                            >
+                                                                <div className="flex gap-2.5 items-start">
+                                                                    <div className="mt-0.5 shrink-0">
+                                                                        {isError ? (
+                                                                            <AlertCircle className="text-red-400 w-4 h-4" />
+                                                                        ) : isValueWarn ? (
+                                                                            <AlertTriangle className="text-amber-400 w-4 h-4" />
+                                                                        ) : (
+                                                                            <Info className="text-cyan-400 w-4 h-4" />
+                                                                        )}
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="flex flex-wrap gap-2 items-center">
+                                                                            <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${
+                                                                                isError 
+                                                                                    ? 'bg-red-950 text-red-400 border border-red-900/40' 
+                                                                                    : isValueWarn 
+                                                                                        ? 'bg-amber-950 text-amber-400 border border-amber-900/40' 
+                                                                                        : 'bg-cyan-950 text-cyan-400 border border-cyan-900/40'
+                                                                            }`}>
+                                                                                السطر {diag.line}
+                                                                            </span>
+                                                                            <span className="text-[11px] text-slate-300 leading-normal font-sans font-medium">
+                                                                                {diag.message}
+                                                                            </span>
+                                                                        </div>
+                                                                        {diag.fixSuggestion && (
+                                                                            <p className="text-[10px] text-slate-400 mt-1 mr-6">
+                                                                                💡 مقترح السلامة: {diag.fixSuggestion.description}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+
+                                                                {diag.fixSuggestion && (
+                                                                    <button
+                                                                        onClick={() => handleApplyDiagnosticFix(diag.line, diag.fixSuggestion!.text, diag.message)}
+                                                                        className="text-[10px] bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shrink-0 transition-all shadow"
+                                                                    >
+                                                                        <Sparkles size={11} className="shrink-0 animate-bounce" />
+                                                                        تطبيق الإصلاح التلقائي 🩹
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                            {/* Tokens Side */}
+                                            <div className="flex flex-col gap-2 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                                                <h5 className="text-xs font-bold text-slate-300 border-b border-slate-800 pb-2 mb-1 flex justify-between">
+                                                    <span>الرموز المعجمية الناتجة (Lexer Tokens)</span>
+                                                    <span className="text-[10px] bg-slate-800 px-2 rounded font-mono text-slate-300">{tokens.length} رمزاً</span>
+                                                </h5>
+                                                <div className="flex-1 overflow-auto max-h-[220px] space-y-1.5 custom-scrollbar pr-1" dir="ltr">
+                                                    {tokens.map((t, idx) => (
+                                                        <div key={idx} className="flex justify-between items-center bg-slate-950 px-2.5 py-1.5 rounded border border-slate-900 text-xs font-mono">
+                                                            <span className="text-slate-500 font-semibold">س {t.line}</span>
+                                                            <span className="text-yellow-400 font-bold">"{t.value || '\\n'}"</span>
+                                                            <span className="text-emerald-400 text-[9px] bg-emerald-950 px-1.5 py-0.5 rounded uppercase font-bold">{t.type}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            
+                                            {/* AST Side */}
+                                            <div className="flex flex-col gap-2 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                                                <h5 className="text-xs font-bold text-slate-300 border-b border-slate-800 pb-2 mb-1">
+                                                    شجرة الإعراب المجردة الناتجة (Abstract Syntax Tree - AST JSON)
+                                                </h5>
+                                                <div className="flex-1 overflow-auto max-h-[220px] custom-scrollbar" dir="ltr">
+                                                    <pre className="text-[11px] text-emerald-300 font-mono bg-slate-950/80 p-3 rounded border border-slate-900 whitespace-pre overflow-x-auto select-all">
+                                                        {JSON.stringify(ast, null, 2)}
+                                                    </pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            } catch (e: any) {
+                                return (
+                                    <div className="bg-red-950/20 border border-red-900/30 p-4 rounded-xl text-right animate-shake" dir="rtl">
+                                        <h4 className="text-sm font-bold text-red-400 flex items-center gap-2">
+                                            <AlertCircle className="text-red-400 w-5 h-5 shrink-0" />
+                                            خطأ في التحليل اللغوي والهيكلي للغة البيان:
+                                        </h4>
+                                        <pre className="mt-2 text-xs bg-slate-950 p-3 rounded text-red-300 font-mono" dir="ltr">
+                                            {e.message || e.toString()}
+                                        </pre>
+                                        <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">يرجى فحص كود البيان المدخل في المحرر النمطي. يلتزم المفسر الهيكلي الصارم بالقواعد النحوية المكتوبة بشكل صحيح دون أي تجاوزات.</p>
+                                    </div>
+                                );
+                            }
+                        })() : (
+                            <BayanRoadmapWithArchitecture code={code} />
+                        )}
                     </div>
                 </div>
                 )}
