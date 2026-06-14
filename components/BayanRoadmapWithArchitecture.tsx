@@ -3,7 +3,6 @@ import {
   Cpu, Terminal, Layers, Sparkles, Wand2, Info, ArrowRight,
   Code2, CheckCircle2, ChevronRight, HelpCircle, Activity, FileCode, AlertCircle, Play
 } from 'lucide-react';
-import bayanArchImage from '../src/assets/images/bayan_compiler_architecture_1781441747024.jpg';
 import { AlBayanLexer, AlBayanParser } from '../services/parser';
 import { AlBayanBytecodeCompiler } from '../services/vm';
 import { AlBayanWasmCompiler } from '../services/wasm';
@@ -148,16 +147,81 @@ export const BayanRoadmapWithArchitecture: React.FC<BayanRoadmapWithArchitecture
             </div>
           </div>
 
-          <div className="relative group overflow-hidden rounded-xl border border-indigo-900/40 bg-black/50 p-2 shadow-2xl">
-            <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-            <img 
-              src={bayanArchImage} 
-              alt="Al-Bayan Compiler Architecture Flowchart" 
-              referrerPolicy="no-referrer"
-              className="w-full h-auto rounded-lg object-cover max-h-[350px] shadow-lg transition-transform duration-500 group-hover:scale-[1.01]" 
-            />
-            <div className="absolute bottom-3 right-3 bg-slate-950/80 px-2.5 py-1 rounded text-[10px] text-indigo-300 font-mono border border-indigo-800">
-              مخطط المعمارية الشامل والمولّد بواسطة الكومبايلر الحالي 🌟
+          {/* Custom Interactive Arch Flowchart */}
+          <div className="relative overflow-hidden rounded-xl border border-indigo-500/20 bg-slate-900/60 p-5 shadow-2xl">
+            <div className="absolute top-0 right-0 h-40 w-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 h-40 w-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <h4 className="text-sm font-bold text-slate-100 mb-5 flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
+              مخطط تفاملي لمعمارية كومبايلر البيان وسلسلة التجميع الذكية
+            </h4>
+
+            {/* Grid Flow */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 relative">
+              {/* Box 1 */}
+              <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-indigo-500/40 hover:shadow-indigo-950/20 hover:shadow-lg transition-all duration-300">
+                <div>
+                  <div className="bg-indigo-950/50 text-indigo-400 border border-indigo-900/50 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs mb-3">01</div>
+                  <h5 className="text-xs font-bold text-white mb-1">المدخل: الشفرة المصدرية</h5>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">تغذية ملفات البيان المكتوبة بـ <code className="text-indigo-300 bg-slate-900 px-1 rounded">.byn</code> والتي تستعين بقوالب المفردات العربية الفصحى المتناسقة.</p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-900 flex justify-between items-center text-[9px] text-indigo-400 font-mono">
+                  <span>INPUT: AL-BAYAN CODE</span>
+                  <CheckCircle2 size={12} className="text-emerald-500" />
+                </div>
+              </div>
+
+              {/* Box 2 */}
+              <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-emerald-500/40 hover:shadow-emerald-950/20 hover:shadow-lg transition-all duration-300">
+                <div>
+                  <div className="bg-emerald-950/50 text-emerald-400 border border-emerald-900/50 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs mb-3">02</div>
+                  <h5 className="text-xs font-bold text-white mb-1">المحلل المعجمي والنحوي</h5>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">يقوم <code className="text-emerald-300 font-bold">Lexer</code> بتقطيع الكود لرموز دلالية ومن ثم يقوم الـ <code className="text-emerald-300 font-bold">Parser</code> ببناء رزم العلاقات النحوية.</p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-900 flex justify-between items-center text-[9px] text-emerald-400 font-mono">
+                  <span>LEXER & PARSER ENGINE</span>
+                  <Activity size={12} className="text-emerald-400 animate-pulse" />
+                </div>
+              </div>
+
+              {/* Box 3 */}
+              <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-amber-500/40 hover:shadow-amber-950/20 hover:shadow-lg transition-all duration-300">
+                <div>
+                  <div className="bg-amber-950/50 text-amber-400 border border-amber-900/50 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs mb-3">03</div>
+                  <h5 className="text-xs font-bold text-white mb-1">شجرة العلاقات والتحليل</h5>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">تشييد شجرة الإعراب المجردة <code className="text-amber-300 font-bold">AST</code> وفحص السلامة المنطقية لتجاوز أخطاء القيود والثواني الصفرية.</p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-900 flex justify-between items-center text-[9px] text-amber-400 font-mono">
+                  <span>AST & SEMANTIC CHECK</span>
+                  <Layers size={12} className="text-amber-400" />
+                </div>
+              </div>
+
+              {/* Box 4 */}
+              <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-purple-500/40 hover:shadow-purple-950/20 hover:shadow-lg transition-all duration-300">
+                <div>
+                  <div className="bg-purple-950/50 text-purple-400 border border-purple-900/50 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs mb-3">04</div>
+                  <h5 className="text-xs font-bold text-white mb-1">توليد الرموز ومنصات الآلة</h5>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">تصدير البايت كود الفوري لصالح <code className="text-purple-300">BayanVM</code> وتجميع الـ <code className="text-purple-300">WASM</code> وإنتاج تطبيقات الأندرويد الأصيلة.</p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-900 flex justify-between items-center text-[9px] text-purple-400 font-mono">
+                  <span>COMPILER TARGET GENERATORS</span>
+                  <Sparkles size={12} className="text-purple-400" />
+                </div>
+              </div>
+            </div>
+
+            {/* Connection labels/hints */}
+            <div className="hidden lg:grid grid-cols-4 gap-4 mt-2 text-center pointer-events-none">
+              <div className="text-[10px] text-indigo-400/70 font-sans">تفتيت الحروف ──▶</div>
+              <div className="text-[10px] text-emerald-400/70 font-sans">بناء الرابط ──▶</div>
+              <div className="text-[10px] text-amber-400/70 font-sans">التجميع والتحسين ──▶</div>
+              <div className="text-[10px] text-purple-400/70 font-sans">تشغيل فوري وبث 🚀</div>
+            </div>
+
+            <div className="absolute bottom-2 left-3 bg-slate-950/80 px-2.5 py-1 rounded text-[10px] text-indigo-300 font-mono border border-indigo-800/30">
+              كومبايلر متكامل ونظام تجميع موحد بالكامل بنسبة أمان فائقة 🌟
             </div>
           </div>
           

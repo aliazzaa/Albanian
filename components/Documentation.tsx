@@ -15,6 +15,7 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<string>('intro');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showPrintGuide, setShowPrintGuide] = useState(false);
 
   if (!isOpen) return null;
 
@@ -228,7 +229,10 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose }) => {
 
   const handlePrintPDF = () => {
     const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    if (!printWindow) {
+      setShowPrintGuide(true);
+      return;
+    }
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -1067,6 +1071,95 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md font-sans">
       <div className="bg-slate-900 w-full max-w-6xl h-[88vh] rounded-2xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden relative" id="docs-modal">
         
+        {showPrintGuide && (
+          <div className="absolute inset-0 z-[60] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-6 text-right" dir="rtl">
+            <div className="bg-slate-900 border border-slate-700 max-w-2xl w-full rounded-2xl p-6 md:p-8 shadow-2xl space-y-6 relative overflow-hidden animate-fade-in">
+              <div className="absolute top-0 right-0 h-40 w-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 h-40 w-40 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+              
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-emerald-950/80 text-emerald-400 rounded-xl border border-emerald-800/50">
+                    <Printer size={22} className="animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-base md:text-lg font-bold text-white">مساعد طباعة وتنزيل مستندات الـ PDF 📄</h3>
+                    <p className="text-[11px] text-slate-400">يبدو أن متصفحك حظر فتح نافذتك التلقائية (Popup Blocked) لكون التطبيق يعمل داخل نظام المعاينة الثنائية.</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowPrintGuide(false)}
+                  className="p-1.5 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-4 text-xs md:text-sm text-slate-300 leading-relaxed">
+                <p className="text-slate-100 font-bold bg-slate-950 p-3 rounded-xl border border-slate-850">
+                  💡 لتنزيل هذا الدليل أو التقارير البرمجية كملفات <span className="text-emerald-400 font-extrabold">PDF رسمية ومنسقة</span>، اتبع الخطوات السهلة التالية بتسلسل:
+                </p>
+
+                <div className="space-y-3.5 relative">
+                  <div className="flex gap-3 items-start">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-[11px] font-bold text-emerald-400 border border-emerald-800">١</span>
+                    <p className="pt-0.5">
+                      <strong className="text-white">فتح التطبيق في علامة تبويب جديدة (مهم جداً):</strong><br />
+                      اضغط على أيقونة <code className="text-emerald-400 bg-slate-950 px-1 rounded text-xs select-all">Open in New Tab</code> أو زر الفتح الخارجي في أعلى يمين شاشة المعاينة الحالية. هذا يحرر التطبيق من قيود بيئة الـ iFrame ويسمح للمتصفح بفتح النوافذ وتصدير الملفات بأمان تام.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3 items-start">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-[11px] font-bold text-emerald-400 border border-emerald-800">٢</span>
+                    <p className="pt-0.5">
+                      <strong className="text-white">النقر على "طباعة الدليل / PDF":</strong><br />
+                      اضغط على زر الطباعة مرة أخرى. ستفتح لك تلقائياً نافذة طباعة المستند الرسمية التابعة لمتصفحك (مثل Chrome أو Safari).
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3 items-start">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-[11px] font-bold text-emerald-400 border border-emerald-800">٣</span>
+                    <p className="pt-0.5">
+                      <strong className="text-white">اختيار وجهة الحفظ كـ PDF:</strong><br />
+                      في خانة <strong className="text-emerald-400">"الوجهة" (Destination)</strong> أو <strong className="text-emerald-400">"الطابعة" (Printer)</strong>، قم بتغيير الخيار من طابعتك العادية إلى <strong className="text-white underline">"حفظ بتنسيق PDF" (Save as PDF)</strong>.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3 items-start">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-[11px] font-bold text-emerald-400 border border-emerald-800">٤</span>
+                    <p className="pt-0.5">
+                      <strong className="text-white">تفعيل الرسومات الخلفية (لأفضل مظهر):</strong><br />
+                      اضغط على <strong className="text-white">"مزيد من الإعدادات" (More settings)</strong>، ثم تأكد من تفعيل <strong className="text-emerald-400">"رسومات الخلفية" (Background graphics)</strong> لتصدير التقارير بألوانها واستايلها الداكن الجذاب، وإلغاء تفعيل "الرؤوس والتذييلات" لحذف الروابط وتواريخ الويب الجانبية غير المحببة.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = generateManualText();
+                    navigator.clipboard.writeText(text);
+                    alert('تم نسخ الدليل النصي الكامل المحدث بنجاح!');
+                  }}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition-colors border border-slate-700"
+                >
+                  <Download size={14} />
+                  نسخ محتوى الدليل بالكامل كنص (.txt) البديل
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPrintGuide(false)}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-slate-950 transition-colors"
+                >
+                  فهمت الخطوات، العودة للدليل
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-900/80">
           <div className="flex items-center gap-4">

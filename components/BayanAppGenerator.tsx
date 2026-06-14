@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { 
   X, Sparkles, Smartphone, Globe, Cpu, Wand2, RefreshCw, Check, Copy, Play, 
   HelpCircle, AlertCircle, Zap, Settings, AppWindow, Layers, Activity, 
-  CheckCircle2, Terminal, ChevronRight, Palette, Layout, ShieldAlert
+  CheckCircle2, Terminal, ChevronRight, Palette, Layout, ShieldAlert,
+  Database, Volume2, Shield, BookOpen, Info
 } from 'lucide-react';
 
 interface BayanAppGeneratorProps {
@@ -53,13 +54,50 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
   const [selectedEduTemplate, setSelectedEduTemplate] = useState<string>('android_azkar');
   const [eduCopied, setEduCopied] = useState(false);
 
+  // -- SIMULATOR STATE VARIABLES --
+  const [simTab, setSimTab] = useState<'code' | 'simulator'>('simulator');
+  const [simulatorState, setSimulatorState] = useState<'idle' | 'splash' | 'app'>('idle');
+  const [simButtonClicks, setSimButtonClicks] = useState<number>(0);
+  const [simLogs, setSimLogs] = useState<string[]>([]);
+  const [simModalText, setSimModalText] = useState<string | null>(null);
+  const [isQuantumAccelerated, setIsQuantumAccelerated] = useState<boolean>(true);
+  const [simVibrateWiggle, setSimVibrateWiggle] = useState<boolean>(false);
+  const [simIsOffline, setSimIsOffline] = useState<boolean>(false);
+  const [simDbRecords, setSimDbRecords] = useState<string[]>([]);
+
   if (!isOpen) return null;
+
+  // Modern browser frequency sound synthesizer mimicking Al-Bayan compiler instructions
+  const playSimTone = (frequency: number = 440, duration: number = 0.15, type: OscillatorType = 'sine') => {
+    try {
+      if (!options.enableVoice) return;
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = type;
+      osc.frequency.value = frequency;
+      
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch (e) {
+      console.warn("Audio Context blocked or unsupported in preview frame", e);
+    }
+  };
 
   const handleGenerate = async () => {
     setIsGenerating(true);
     setGenStep(0);
     setGenLogs([]);
     setGeneratedCode(null);
+    setSimulatorState('idle');
 
     const steps = [
       { text: `🔮 [الذكاء الصرف] جاري تحليل واقتراح البنية التحتية لتطبيق "${options.appName}"...`, duration: 700 },
@@ -80,6 +118,37 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
     const generatedBayanCode = getCustomBayanCode(options);
     setGeneratedCode(generatedBayanCode);
     setIsGenerating(false);
+
+    // Bootstrap physical device simulation parameters
+    setSimButtonClicks(0);
+    setSimTab('simulator');
+    setSimulatorState('splash');
+    setSimIsOffline(false);
+    setSimDbRecords([]);
+
+    // Boot cycle simulations
+    setTimeout(() => {
+      if (options.enableVoice) {
+        playSimTone(523, 0.08, 'sine'); // C5
+        setTimeout(() => playSimTone(659, 0.08, 'sine'), 80); // E5
+        setTimeout(() => playSimTone(784, 0.12, 'sine'), 160); // G5
+      }
+      setSimulatorState('app');
+
+      const bootTime = new Date().toLocaleTimeString('ar-EG');
+      const startLogs = [
+        `[${bootTime}] 🚀 جاري بدء تشغيل: ${options.appName}`,
+        `[${bootTime}] 💎 النظائر والطبقات الهيكلية محمَّلة ومستقرة تماماً.`,
+        `[${bootTime}] 🔋 مؤشر استهلاك الطاقة: 0% كفاءة الصفر الخلوي.`
+      ];
+      if (options.enableLocalDb) {
+        startLogs.push(`[${bootTime}] 💾 تم تسجيل قاعدة بيانات SQLite الموطنة وتشغيل النواة!`);
+      }
+      if (options.enableVoice) {
+        startLogs.push(`[${bootTime}] 📢 مكثّفات نطق الصوت وتخليق النغمات مفعّلة بنجاح.`);
+      }
+      setSimLogs(startLogs);
+    }, 1300);
   };
 
   const getCustomBayanCode = (opt: GenerationOptions) => {
@@ -554,24 +623,58 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
               {/* Generated Code & Beautiful Mockup Screen Preview */}
               {!isGenerating && generatedCode && (
                 <div className="flex-1 flex flex-col overflow-hidden">
-                  {/* Switcher and Top Action buttons bar */}
-                  <div className="bg-slate-900/60 p-3 px-4 border-b border-slate-900 flex items-center justify-between gap-2 shrink-0">
-                    <div className="flex items-center gap-1.5">
-                      <Terminal size={14} className="text-emerald-400" />
-                      <span className="text-[11px] font-bold text-slate-300 font-sans">الأكواد الجاهزة المصقولة (.byn):</span>
+                  
+                  {/* Top Segmented Controls & Primary Action Buttons */}
+                  <div className="bg-slate-900/60 p-3.5 px-5 border-b border-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0" dir="rtl">
+                    <div className="flex items-center gap-2.5">
+                      <Terminal size={14} className="text-emerald-400 shrink-0" />
+                      
+                      {/* Segmented Controls */}
+                      <div className="bg-slate-950 p-1 rounded-xl border border-slate-850 flex gap-1">
+                        <button
+                          onClick={() => {
+                            setSimTab('simulator');
+                            playSimTone(440, 0.05, 'sine');
+                          }}
+                          className={`px-3.5 py-1.5 rounded-lg text-[10.5px] font-extrabold transition-all flex items-center gap-1.5 ${
+                            simTab === 'simulator'
+                              ? 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-extrabold shadow-lg shadow-sky-950/40'
+                              : 'text-slate-400 hover:text-white hover:bg-slate-900/50'
+                          }`}
+                          id="tab-btn-simulator"
+                        >
+                          <Smartphone size={12} />
+                          <span>محاكاة التطبيق فوريًا 📱</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSimTab('code');
+                            playSimTone(480, 0.05, 'sine');
+                          }}
+                          className={`px-3.5 py-1.5 rounded-lg text-[10.5px] font-extrabold transition-all flex items-center gap-1.5 ${
+                            simTab === 'code'
+                              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-extrabold shadow-lg shadow-emerald-950/40'
+                              : 'text-slate-400 hover:text-white hover:bg-slate-900/50'
+                          }`}
+                          id="tab-btn-code"
+                        >
+                          <Terminal size={12} />
+                          <span>أكواد لغة البيان (.byn) 💻</span>
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       {/* Copy code button */}
                       <button
                         onClick={handleCopy}
-                        className="h-8 px-3 rounded-lg border border-slate-800 bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center gap-1.5 text-[10px] font-bold"
+                        className="h-9 px-3.5 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 hover:text-white hover:bg-slate-820 transition-all flex items-center gap-2 text-[10.5px] font-bold"
                         id="gen-copy-btn"
                       >
                         {copied ? (
                           <>
-                            <Check size={11} className="text-emerald-400" />
-                            <span className="text-emerald-400">تم النسخ!</span>
+                            <Check size={12} className="text-emerald-400" />
+                            <span className="text-emerald-400">تم نسخ الرمز!</span>
                           </>
                         ) : (
                           <>
@@ -587,9 +690,10 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
                           onApplyCode(generatedCode);
                           onClose();
                         }}
-                        className="h-8 px-3 rounded-lg bg-sky-600 hover:bg-sky-500 text-white transition-all flex items-center gap-1 text-[10px] font-bold shadow-md shadow-sky-950/20"
+                        className="h-9 px-3.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white transition-all flex items-center gap-1.5 text-[10.5px] font-extrabold shadow-md shadow-sky-950/20"
                         id="gen-apply-editor-btn"
                       >
+                        <CheckCircle2 size={12} />
                         <span>تطبيق في المحرر</span>
                       </button>
 
@@ -599,142 +703,504 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
                           onInstantRun(generatedCode);
                           onClose();
                         }}
-                        className="h-8 px-3 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white transition-all flex items-center gap-1 text-[10px] font-bold shadow-md shadow-emerald-950/20"
+                        className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white transition-all flex items-center gap-1.5 text-[10.5px] font-extrabold shadow-md shadow-emerald-950/20"
                         id="gen-instant-run-btn"
                       >
                         <Play size={10} fill="currentColor" />
-                        <span>تشغيل فوري</span>
+                        <span>تشغيل المشروع ⚡</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* Split panel: Code Box first, Visual mockup layout below */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {/* Code box */}
-                    <div className="bg-slate-900/60 rounded-xl border border-slate-850 p-3.5 relative overflow-hidden">
-                      <pre className="text-[10px] leading-relaxed text-slate-200 font-mono text-right overflow-x-auto whitespace-pre select-all" dir="ltr">
-                        {generatedCode}
-                      </pre>
-                    </div>
-
-                    {/* Device Visual Mockup preview card */}
-                    <div className="border border-slate-900 rounded-2xl bg-slate-900/30 overflow-hidden relative">
-                      {/* Header preview theme */}
-                      <div className={`p-4 bg-slate-900/80 border-b border-slate-900 flex items-center justify-between`}>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3.5 h-3.5 rounded-full bg-red-500/80" />
-                          <div className="w-3.5 h-3.5 rounded-full bg-yellow-500/80" />
-                          <div className="w-3.5 h-3.5 rounded-full bg-green-500/80" />
+                  {/* Dynamic Workspace Container */}
+                  <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-950" dir="rtl">
+                    
+                    {/* ====== SOURCE CODE MODE ====== */}
+                    {simTab === 'code' && (
+                      <div className="space-y-4 animate-in fade-in duration-200 text-right">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-bold text-slate-400">شيفرة المصدر المترجمة بلغة البيان المقاومة للثغرات:</h4>
+                          <span className="p-1 px-2.2 rounded bg-slate-900 border border-slate-805 text-[8px] font-mono text-emerald-400">0% MEMORY LEAKS</span>
                         </div>
-                        <span className="text-[10px] text-slate-500 font-bold font-mono">
-                          {options.appType === 'android' ? 'مخطط شاشة الاندرويد APK' : 'مخطط تصفح موقع الويب PWA'}
-                        </span>
+                        <div className="bg-[#030712] rounded-2xl border border-slate-900 p-4.5 relative overflow-hidden group">
+                          <div className="absolute top-3 left-3 bg-slate-900 border border-slate-805 text-slate-500 text-[8px] px-2 py-0.5 rounded font-mono select-none">
+                            BYN COMPILER V1.4
+                          </div>
+                          <pre className="text-[10px] leading-relaxed text-slate-200 font-mono text-right overflow-x-auto whitespace-pre select-all pt-2" dir="ltr">
+                            {generatedCode}
+                          </pre>
+                        </div>
+                        <div className="bg-slate-900/35 border border-slate-900 p-4 rounded-xl flex items-start gap-3">
+                          <Info size={14} className="text-sky-400 shrink-0 mt-0.5" />
+                          <p className="text-[10px] text-slate-400 leading-relaxed">
+                            <strong>توثيق النقل:</strong> هذه الأكواد البرمجية متوافقة بالكامل مع قواعد ومحددات مترجم البيئة التوليدية. الضغط على زر "تطبيق في المحرر" سيقوم بنقلها تلقائياً وإتاحتها للإصدار وبناء حزم الأندرويد والـ WebApp بشكل نهائي.
+                          </p>
+                        </div>
                       </div>
+                    )}
 
-                      <div className="p-6 flex justify-center bg-[#070b16]">
-                        {/* Interactive mock smartphone/device outline */}
-                        <div className="w-full max-w-[280px] rounded-3xl border-4 border-slate-800 bg-[#0c1221] p-3 shadow-xl relative aspect-[9/16] flex flex-col justify-between overflow-hidden">
+                    {/* ====== INTERACTIVE SIMULATOR MODE ====== */}
+                    {simTab === 'simulator' && (
+                      <div className="flex flex-col lg:flex-row gap-6 items-stretch justify-center animate-in fade-in duration-200">
+                        
+                        {/* Column 1: Physical Phone Wrapper */}
+                        <div className="flex flex-col items-center shrink-0">
                           
-                          {/* Device camera notch */}
-                          <div className="w-16 h-3 bg-slate-800 rounded-b-xl mx-auto -mt-3 pb-1" />
+                          {/* Bezel frame container */}
+                          <div 
+                            className={`w-72 sm:w-[290px] rounded-[38px] border-[7px] border-slate-800 bg-slate-900 p-3 shadow-2xl relative select-none flex flex-col justify-between overflow-hidden transition-all duration-300 ${
+                              simVibrateWiggle ? 'animate-bounce' : ''
+                            }`}
+                            style={simVibrateWiggle ? { transform: 'translateX(4px) rotate(1deg)' } : {}}
+                          >
+                            {/* Camera Notch and Speaker Grid */}
+                            <div className="w-20 h-4.5 bg-slate-900 rounded-b-2xl mx-auto -mt-3.5 pb-2.5 flex items-center justify-center gap-1.5 z-20 shrink-0">
+                              <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />
+                              <div className="w-8 h-1 bg-slate-800 rounded-full" />
+                            </div>
 
-                          {/* Top bar */}
-                          <div className="flex justify-between items-center text-[8px] text-slate-400 px-2 py-1 select-none">
-                            <span className="font-bold">12:30 م</span>
-                            <div className="flex gap-1 items-center">
-                              <Activity size={8} className="text-emerald-400" />
-                              <span>100% 🔋</span>
+                            {/* Outer Glass Side Buttons mockup */}
+                            <div className="absolute right-[-10px] top-24 w-[3px] h-10 bg-slate-755 rounded-l" />
+                            <div className="absolute left-[-10px] top-20 w-[3px] h-7 bg-slate-755 rounded-r" />
+                            <div className="absolute left-[-10px] top-30 w-[3px] h-7 bg-slate-755 rounded-r" />
+
+                            {/* Inner Screen Surface */}
+                            <div className="w-full bg-[#040712] rounded-[30px] aspect-[9/18] overflow-hidden flex flex-col relative border border-slate-950 shadow-inner">
+                              
+                              {/* Screen Status bar */}
+                              <div className="flex justify-between items-center text-[8.5px] text-slate-400 px-3.5 py-1.5 bg-[#03060f]/80 backdrop-blur z-25">
+                                <span className="font-bold text-slate-300">١٢:٣٠ م</span>
+                                <div className="flex gap-1.2 items-center">
+                                  {simIsOffline ? (
+                                    <span className="text-amber-500 font-bold text-[8px] flex items-center gap-0.5">
+                                      ✈️ وب مستقر دون اتصال
+                                    </span>
+                                  ) : (
+                                    <span className="text-emerald-500 text-[8px] flex items-center gap-0.5">
+                                      📶 5G السيادة
+                                    </span>
+                                  )}
+                                  <div className="w-5.5 h-2.5 border border-slate-600 rounded px-0.5 flex items-center bg-slate-900/60 font-sans text-[7.5px] text-slate-350">
+                                    <span className="font-bold text-[7.5px] block w-full text-center">🔋</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Splash loader and booting state */}
+                              {simulatorState === 'splash' && (
+                                <div className="flex-1 flex flex-col items-center justify-center p-5 text-center space-y-5 bg-[#03060d] relative">
+                                  {/* Dynamic spinning core */}
+                                  <div className="relative">
+                                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-sky-500 animate-spin flex items-center justify-center">
+                                      <Wand2 size={24} className="text-sky-400 animate-pulse" />
+                                    </div>
+                                    <div className="absolute inset-0 border border-indigo-500/20 rounded-full scale-110 animate-ping duration-1000" />
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    <h5 className="text-[11px] font-extrabold text-[#edf2f7] block">تطبيق الـ APK والـ PWA يتكوّن</h5>
+                                    <p className="text-[8px] text-slate-500 leading-relaxed px-4">
+                                      ربط أندرويد.تنظيف_ذاكرة_تلقائي() وتفعيل التوازي دون خوادم...
+                                    </p>
+                                  </div>
+                                  <div className="w-24 h-1 bg-slate-900 rounded-full overflow-hidden border border-slate-850 mx-auto mt-2">
+                                    <div className="bg-gradient-to-r from-sky-400 to-indigo-500 h-full rounded-full animate-pulse transition-all duration-1000" style={{ width: '80%' }} />
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Interactive Active App State */}
+                              {simulatorState === 'app' && (
+                                <div className="flex-1 flex flex-col justify-between overflow-y-auto relative p-3 pb-4" dir="rtl">
+                                  
+                                  {/* Inline Quantum Acceleration glowing ribbon wave */}
+                                  {isQuantumAccelerated && (
+                                    <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-sky-500/5 to-transparent pointer-events-none animate-pulse overflow-hidden">
+                                      <div className="w-[150%] h-12 bg-sky-500/10 rounded-full blur-xl animate-spin mx-auto -translate-y-6 opacity-30" />
+                                    </div>
+                                  )}
+
+                                  {/* Top Navigation element */}
+                                  <div className="space-y-2 relative z-10 pt-1 text-center shrink-0">
+                                    <div className="mx-auto w-10 h-10 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-lg">
+                                      <Wand2 size={16} className={`${
+                                        options.colorTheme === 'emerald' ? 'text-emerald-400' :
+                                        options.colorTheme === 'indigo' ? 'text-indigo-400' :
+                                        options.colorTheme === 'gold' ? 'text-amber-400' :
+                                        options.colorTheme === 'rose' ? 'text-rose-400' :
+                                        'text-purple-400'
+                                      }`} />
+                                    </div>
+                                    <div className="text-center">
+                                      <h6 className="text-[10.5px] font-extrabold text-slate-100 leading-tight">{options.appName}</h6>
+                                      <span className="text-[7.5px] text-slate-500 block">{options.developerName}</span>
+                                    </div>
+                                  </div>
+
+                                  {/* Core Functional Screen Modules */}
+                                  <div className="flex-1 my-3 overflow-y-auto space-y-2.5 px-0.5">
+                                    
+                                    {/* App UI style representations */}
+                                    {options.uiStyle === 'royal' && (
+                                      <div className="border border-amber-500/25 bg-amber-500/5 p-2 rounded-xl text-center space-y-1 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-0.5 bg-amber-500/10 rounded-es">👑</div>
+                                        <span className="text-[7.5px] text-amber-400 font-extrabold block">لوحة ذهبية ملكية فاخرة</span>
+                                        <p className="text-[7.5px] text-slate-300 leading-relaxed text-center px-1">
+                                          {options.description.length > 80 ? `${options.description.slice(0, 80)}...` : options.description}
+                                        </p>
+                                      </div>
+                                    )}
+
+                                    {options.uiStyle === 'mono' && (
+                                      <div className="border border-slate-800 bg-[#02050a] p-2 rounded-xl font-mono text-right space-y-1">
+                                        <span className="text-[7px] text-slate-400 font-bold block">// نظام أحادي ومقاوم للعوامل</span>
+                                        <p className="text-[7px] text-emerald-400 leading-relaxed">
+                                          ⚙️ SYS_LOAD: STABLE<br />
+                                          📝 {options.description.length > 80 ? `${options.description.slice(0, 80)}...` : options.description}
+                                        </p>
+                                      </div>
+                                    )}
+
+                                    {options.uiStyle === 'cards' && (
+                                      <div className="bg-slate-900/60 border border-slate-850 p-2.5 rounded-xl space-y-1">
+                                        <div className="flex items-center gap-1.2">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                                          <span className="text-[7.5px] font-extrabold text-slate-200">النمط الجغرافي للبطاقات</span>
+                                        </div>
+                                        <p className="text-[7.5px] text-slate-400 leading-relaxed pr-1">
+                                          {options.description.length > 80 ? `${options.description.slice(0, 80)}...` : options.description}
+                                        </p>
+                                      </div>
+                                    )}
+
+                                    {options.uiStyle === 'minimal' && (
+                                      <div className="border border-slate-900 bg-slate-950 p-2.5 rounded-xl text-center">
+                                        <p className="text-[8px] text-slate-350 leading-relaxed italic">
+                                          "{options.description.length > 90 ? `${options.description.slice(0, 90)}...` : options.description}"
+                                        </p>
+                                      </div>
+                                    )}
+
+                                    {options.uiStyle === 'sand' && (
+                                      <div className="border border-amber-900/20 bg-amber-950/10 p-2.5 rounded-xl space-y-1">
+                                        <span className="text-[7px] text-amber-500 font-bold block border-b border-amber-900/10 pb-0.5">⏳ الطبع الصحراوي الدافئ</span>
+                                        <p className="text-[7.5px] text-slate-400 leading-relaxed">
+                                          {options.description.length > 80 ? `${options.description.slice(0, 80)}...` : options.description}
+                                        </p>
+                                      </div>
+                                    )}
+
+                                    {/* Offline SW Banner if active */}
+                                    {options.enableOfflinePwa && simIsOffline && (
+                                      <div className="bg-amber-550/10 border border-amber-550/20 p-2 rounded-xl text-center space-y-0.5 animate-pulse">
+                                        <span className="text-[7.2px] font-bold text-amber-400 block">منع الترابط الخارجي (Offline Mode)</span>
+                                        <p className="text-[6.5px] text-slate-400 leading-relaxed">
+                                          يعمل بالتكامل ومحايد 100% دون الحاجة للسحب أو خطوط النت.
+                                        </p>
+                                      </div>
+                                    )}
+
+                                    {/* SQLite Simulated DB Card element */}
+                                    {options.enableLocalDb && (
+                                      <div className="bg-slate-900/40 border border-slate-850/60 p-2.5 rounded-xl space-y-1.5 text-right">
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-[7.5px] text-slate-400 font-bold flex items-center gap-1">
+                                            <Database size={8} className="text-sky-400" />
+                                            <span>سجل SQLite المحلي (.db)</span>
+                                          </span>
+                                          <span className="text-[6.5px] px-1.2 py-0.2 rounded bg-sky-500/10 text-sky-400 font-bold">
+                                            الصفوف: +{simDbRecords.length}
+                                          </span>
+                                        </div>
+
+                                        {/* Display simulated SQL records on device */}
+                                        <div className="space-y-1 max-h-16 overflow-y-auto">
+                                          {simDbRecords.length === 0 ? (
+                                            <span className="text-[6.5px] text-slate-650 block text-center py-1">قاعدة البيانات فارغة، اضغط الحفظ لتوفير السجلات.</span>
+                                          ) : (
+                                            simDbRecords.map((rec, i) => (
+                                              <div key={i} className="text-[6.8px] bg-slate-950 p-1 rounded border border-slate-900 text-teal-400 flex justify-between font-mono">
+                                                <span>{rec}</span>
+                                                <span className="text-[6px] text-slate-500">تم الحفظ</span>
+                                              </div>
+                                            ))
+                                          )}
+                                        </div>
+
+                                        <button 
+                                          onClick={() => {
+                                            playSimTone(587, 0.08, 'sine'); // D5
+                                            setSimVibrateWiggle(true);
+                                            setTimeout(() => setSimVibrateWiggle(false), 150);
+                                            const now = new Date();
+                                            const timestamp = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+                                            const newRecord = `صف_أهواء_${simDbRecords.length + 1}`;
+                                            setSimDbRecords(prev => [...prev, newRecord]);
+                                            
+                                            // Append DB telemetry logs
+                                            const logTime = now.toLocaleTimeString('ar-EG');
+                                            setSimLogs(prev => [
+                                              ...prev,
+                                              `[${logTime}] 💾 قاعدة_بيانات.تحديث_أو_إضافة("سجل_التقدم"، "${newRecord}")`
+                                            ]);
+                                          }}
+                                          className="w-full py-1 rounded bg-sky-900/50 hover:bg-sky-850/60 border border-sky-800/30 text-[7px] text-sky-350 font-bold flex items-center justify-center gap-1"
+                                        >
+                                          <span>💾 حفظ سجل جديد في SQLite</span>
+                                        </button>
+                                      </div>
+                                    )}
+
+                                    {/* Tone generating and music chord synthesizers panel */}
+                                    {options.enableVoice && (
+                                      <div className="bg-slate-900/40 border border-slate-850/60 p-2.5 rounded-xl space-y-1.5 text-right">
+                                        <div className="flex items-center gap-1.2 text-slate-400">
+                                          <Volume2 size={9} className="text-indigo-400 animate-pulse" />
+                                          <span className="text-[7.5px] font-bold">مؤلف النغمات ورنين العتاد التلقائي</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-1.5">
+                                          <button
+                                            onClick={() => {
+                                              playSimTone(261.63, 0.1, 'sine'); // C4
+                                              setTimeout(() => playSimTone(329.63, 0.1, 'sine'), 100); // E4
+                                              setTimeout(() => playSimTone(392.00, 0.15, 'sine'), 200); // G4
+                                              
+                                              const logTime = new Date().toLocaleTimeString('ar-EG');
+                                              setSimLogs(prev => [
+                                                ...prev, 
+                                                `[${logTime}] 📢 نغمة.تشغيل_مسار("C4->E4->G4", "8n")`
+                                              ]);
+                                            }}
+                                            className="py-1 rounded bg-indigo-950/40 border border-indigo-900/30 text-[7px] text-indigo-300 font-bold"
+                                          >
+                                            🔊 عزف نوتة الأمل
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              playSimTone(440.00, 0.08, 'square'); // A4
+                                              setTimeout(() => playSimTone(554.37, 0.12, 'square'), 80); // C#5
+                                              
+                                              const logTime = new Date().toLocaleTimeString('ar-EG');
+                                              setSimLogs(prev => [
+                                                ...prev, 
+                                                `[${logTime}] 📢 نغمة.تشغيل_مسار("A4->C#5", "16n")`
+                                              ]);
+                                            }}
+                                            className="py-1 rounded bg-indigo-950/40 border border-indigo-900/30 text-[7px] text-indigo-300 font-bold"
+                                          >
+                                            🎹 نغمة التبريد
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Tactile test buttons */}
+                                    {options.enableHaptic && (
+                                      <div className="p-2 border border-slate-900 bg-slate-950 rounded-xl flex items-center justify-between gap-2">
+                                        <span className="text-[7px] text-slate-500">حاقن الاهتزاز (Haptic)</span>
+                                        <button
+                                          onClick={() => {
+                                            setSimVibrateWiggle(true);
+                                            setTimeout(() => setSimVibrateWiggle(false), 200);
+                                            playSimTone(110, 0.08, 'triangle'); // Low rumble
+                                            const logTime = new Date().toLocaleTimeString('ar-EG');
+                                            setSimLogs(prev => [
+                                              ...prev,
+                                              `[${logTime}] 📳 أندرويد.اهتزاز_لمسي("نقرة_خفيفة")`
+                                            ]);
+                                          }}
+                                          className="py-1 px-2.5 rounded bg-pink-900/40 hover:bg-pink-850/50 border border-pink-900/30 text-[7px] text-pink-300 font-bold"
+                                        >
+                                          📳 تفريغ نبض
+                                        </button>
+                                      </div>
+                                    )}
+
+                                  </div>
+
+                                  {/* Bottom user action controls & triggers */}
+                                  <div className="space-y-1.5 pt-1.5 border-t border-slate-900/60 shrink-0 select-none relative z-10">
+                                    <button 
+                                      onClick={() => {
+                                        playSimTone(523.25, 0.1, 'sine'); // C5
+                                        setSimVibrateWiggle(true);
+                                        setTimeout(() => setSimVibrateWiggle(false), 150);
+                                        setSimButtonClicks(prev => prev + 1);
+                                        setSimModalText(`تأكيد دخول ناجح! \n\nتم الاتصال ببرنامجك الموطن "${options.appName}" بنجاح فائق.\n\nتطهير الذاكرة: 100% مستقرة.`);
+                                        const logTime = new Date().toLocaleTimeString('ar-EG');
+                                        setSimLogs(prev => [
+                                          ...prev,
+                                          `[${logTime}] 🚀 تم تسجيل النقر بنجاح وتأصيل الدالة تعلن.عند_النقر("زر_الدخول")`
+                                        ]);
+                                      }}
+                                      className={`w-full py-2.2 rounded-xl text-slate-950 font-extrabold text-[9px] shadow-lg flex items-center justify-center gap-1 transition-all ${
+                                        options.colorTheme === 'emerald' ? 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:brightness-110' :
+                                        options.colorTheme === 'indigo' ? 'bg-gradient-to-r from-indigo-400 to-blue-400 hover:brightness-110' :
+                                        options.colorTheme === 'gold' ? 'bg-gradient-to-r from-amber-400 to-yellow-400 hover:brightness-110' :
+                                        options.colorTheme === 'rose' ? 'bg-gradient-to-r from-rose-400 to-pink-400 hover:brightness-110' :
+                                        'bg-gradient-to-r from-purple-400 to-indigo-400 hover:brightness-110'
+                                      }`}
+                                    >
+                                      <span>تـأكـيـد الاتـصـال و فـتـح الـتـطـبـيـق 🚀</span>
+                                    </button>
+                                    
+                                    <div className="flex items-center justify-between text-[6.5px] text-slate-500 px-1 mt-0.5">
+                                      <span>النقرات المسجلة: {simButtonClicks}</span>
+                                      {options.enableOfflinePwa ? (
+                                        <span className="flex items-center gap-0.5 text-emerald-400 font-bold">
+                                          <Shield size={7} /> App Cache PWA
+                                        </span>
+                                      ) : (
+                                        <span>نظام خارجي</span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Custom simulated mobile Modal Overlay */}
+                                  {simModalText && (
+                                    <div className="absolute inset-x-2 top-10 bottom-4 bg-slate-955/95 backdrop-blur-sm border border-slate-900 rounded-2xl flex items-center justify-center p-4 z-40 animate-in zoom-in-95 duration-200">
+                                      <div className="bg-slate-900 border border-slate-805 rounded-xl p-3.5 text-center space-y-3 shadow-2xl">
+                                        <Wand2 className="mx-auto text-sky-400 animate-pulse" size={18} />
+                                        <div className="space-y-1">
+                                          <h6 className="text-[9px] font-extrabold text-[#edf2f7] leading-tight">رسالة تطبيق البيان:</h6>
+                                          <p className="text-[7.5px] text-slate-350 leading-relaxed font-sans whitespace-pre-line pr-1 text-center">
+                                            {simModalText}
+                                          </p>
+                                        </div>
+                                        <button
+                                          onClick={() => {
+                                            setSimModalText(null);
+                                            playSimTone(392, 0.05, 'sine');
+                                          }}
+                                          className="w-full py-1 rounded bg-slate-800 hover:bg-slate-755 border border-slate-700 text-slate-200 text-[8px] font-bold"
+                                        >
+                                          حسناً، استمر بالمعاينة
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                </div>
+                              )}
+
+                              {/* Bottom physical gesture line indicators */}
+                              <div className="w-20 h-1 bg-slate-850 rounded-full mx-auto my-1.5 shrink-0" />
+
                             </div>
                           </div>
 
-                          {/* Main Mock screen contents */}
-                          <div className="flex-1 flex flex-col justify-between p-3 py-4 space-y-2.5">
-                            <div className="space-y-2">
-                              {/* App badge / icon */}
-                              <div className="mx-auto w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-900 to-slate-800 border border-slate-800 flex items-center justify-center shadow-inner">
-                                <Wand2 size={16} className={`${getThemeText(options.colorTheme)}`} />
-                              </div>
+                        </div>
 
-                              {/* Responsive title based on colorTheme */}
-                              <div className="text-center">
-                                <h5 className="text-[11px] font-extrabold text-slate-100">{options.appName}</h5>
-                                <span className="text-[7.5px] text-slate-500 block mt-0.5">{options.developerName}</span>
-                              </div>
+                        {/* Column 2: Dashboard Control Switchers and Live Telemetry Logs */}
+                        <div className="flex-1 flex flex-col justify-between space-y-4">
+                          
+                          {/* Live device auxiliary controllers */}
+                          <div className="bg-slate-900/35 border border-slate-900 p-4 rounded-2xl space-y-3.5">
+                            <h4 className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5 border-b border-slate-900 pb-2.5">
+                              <Settings size={12} className="text-sky-400" />
+                              <span>مفاتيح تحكم عتادية في المعاينة والمحاكاة:</span>
+                            </h4>
 
-                              {/* Stylized custom UI decoration based on uiStyle option */}
-                              {options.uiStyle === 'royal' ? (
-                                <div className="border border-yellow-500/25 bg-yellow-500/5 p-2 rounded-lg text-center space-y-1">
-                                  <span className="text-[7px] text-amber-400 font-bold block">✨ نمط واجهة ملكية فاخرة ✨</span>
-                                  <p className="text-[7.5px] text-slate-400 leading-snug">
-                                    {options.description.length > 60 ? `${options.description.slice(0, 60)}...` : options.description}
-                                  </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-right">
+                              
+                              {/* Flight / Offline SW Switcher */}
+                              {options.enableOfflinePwa && (
+                                <div className="flex items-center justify-between bg-slate-955 border border-slate-900 p-2.5 rounded-xl">
+                                  <div className="space-y-0.5">
+                                    <span className="text-[10px] text-slate-200 font-extrabold block">وضع الملاحة دون شبكة (Offline SW)</span>
+                                    <span className="text-[8.5px] text-slate-500 block">محاكاة انقطاع الاتصال بالسيرفر</span>
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      const nextState = !simIsOffline;
+                                      setSimIsOffline(nextState);
+                                      playSimTone(400, 0.08, 'sine');
+                                      const now = new Date().toLocaleTimeString('ar-EG');
+                                      setSimLogs(prev => [
+                                        ...prev,
+                                        `[${now}] ${nextState ? '✈️ تم قطع التصدير الخارجي والتحول للمخزن الاحتياطي PWA Offline.' : '📶 تم إعادة ربط خيوط الاتصال بالمنفذ الخارجي 5G.'}`
+                                      ]);
+                                    }}
+                                    className={`w-9 h-5 rounded-full p-0.5 transition-all duration-200 shrink-0 ${simIsOffline ? 'bg-amber-500' : 'bg-slate-805'}`}
+                                  >
+                                    <div className={`w-4 h-4 rounded-full bg-slate-950 transition-all transform duration-200 ${simIsOffline ? '-translate-x-4' : 'translate-x-0'}`} />
+                                  </button>
                                 </div>
-                              ) : options.uiStyle === 'mono' ? (
-                                <div className="border border-slate-800 bg-slate-950 p-2 rounded-lg font-mono text-right space-y-1">
-                                  <span className="text-[7px] text-slate-400 font-bold block">SYS_STATUS: RUNNING</span>
-                                  <p className="text-[7px] text-slate-350 leading-snug">
-                                    {options.description.length > 60 ? `${options.description.slice(0, 60)}...` : options.description}
-                                  </p>
+                              )}
+
+                              {/* Quantum Processing superposition selector */}
+                              <div className="flex items-center justify-between bg-slate-955 border border-slate-900 p-2.5 rounded-xl">
+                                <div className="space-y-0.5">
+                                  <span className="text-[10px] text-slate-200 font-extrabold block">التسريع والتقاط الكم الكمومي</span>
+                                  <span className="text-[8.5px] text-slate-500 block">مضاعفة توازي الموجات للحساب اللحظي O(1)</span>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    const nextState = !isQuantumAccelerated;
+                                    setIsQuantumAccelerated(nextState);
+                                    playSimTone(nextState ? 660 : 330, 0.08, 'sine');
+                                    const now = new Date().toLocaleTimeString('ar-EG');
+                                    setSimLogs(prev => [
+                                      ...prev,
+                                      `[${now}] ${nextState ? '⚛️ تم تفعيل المحرك التراكمي كمومية.سجل_متشابك() لسرعة صفر زمنية.' : '💤 تم وضع الأنوية في وضع تبريد مستقر.'}`
+                                    ]);
+                                  }}
+                                  className={`w-9 h-5 rounded-full p-0.5 transition-all duration-200 shrink-0 ${isQuantumAccelerated ? 'bg-indigo-500' : 'bg-slate-805'}`}
+                                >
+                                  <div className={`w-4 h-4 rounded-full bg-slate-950 transition-all transform duration-200 ${isQuantumAccelerated ? '-translate-x-4' : 'translate-x-0'}`} />
+                                </button>
+                              </div>
+
+                            </div>
+                          </div>
+
+                          {/* Live Console Output Terminal */}
+                          <div className="flex-1 flex flex-col bg-[#030712] rounded-2xl border border-slate-900 overflow-hidden min-h-[160px]">
+                            
+                            {/* Inner Header bar on Terminal */}
+                            <div className="bg-[#050b1a] p-3 px-4.5 border-b border-slate-900 flex items-center justify-between select-none shrink-0" dir="rtl">
+                              <div className="flex items-center gap-2">
+                                <div className="p-1 rounded bg-[#10b981]/15 text-[#10b981]">
+                                  <Terminal size={11} className="animate-pulse" />
+                                </div>
+                                <span className="text-[10px] font-extrabold text-[#edf2f7] font-sans">سجل حاسوب الاستجابة الفوري (Terminal Simulation Dashboard)</span>
+                              </div>
+                              
+                              <button
+                                onClick={() => {
+                                  setSimLogs([]);
+                                  playSimTone(300, 0.05, 'sine');
+                                }}
+                                className="text-[9px] text-[#e2e8f0]/40 hover:text-white transition-colors border border-slate-800 p-1 px-2.5 rounded-lg font-bold bg-[#040914]"
+                              >
+                                مسح المخرجات
+                              </button>
+                            </div>
+
+                            {/* Logs stream list content */}
+                            <div className="flex-1 overflow-y-auto p-4.5 font-mono text-[9.5px] text-slate-300 leading-relaxed text-right space-y-2 max-h-52">
+                              {simLogs.length === 0 ? (
+                                <div className="h-full flex items-center justify-center text-slate-650 italic text-[10px]">
+                                  <span>[بانتظار العمليات للاستشعار والبث...]</span>
                                 </div>
                               ) : (
-                                <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-850 space-y-1">
-                                  <div className="flex items-center gap-1">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                    <span className="text-[7.5px] font-bold text-slate-300">ميزة نشطة ومخزنة</span>
+                                simLogs.map((log, index) => (
+                                  <div key={index} className="flex items-start gap-2 animate-in fade-in duration-100">
+                                    <span className="text-emerald-500 shrink-0">✔</span>
+                                    <span className="font-mono text-slate-250 select-all">{log}</span>
                                   </div>
-                                  <p className="text-[7.5px] text-slate-400 leading-snug text-right">
-                                    {options.description.length > 70 ? `${options.description.slice(0, 70)}...` : options.description}
-                                  </p>
-                                </div>
-                              )}
-
-                              {/* Hardware status modules labels if selected */}
-                              <div className="grid grid-cols-2 gap-1.5">
-                                {options.enableLocalDb && (
-                                  <div className="bg-slate-900/30 border border-slate-850/60 p-1.5 rounded-lg text-center">
-                                    <span className="text-[7px] text-slate-400 font-medium block">المستودع المحلي</span>
-                                    <span className="text-[6.5px] text-emerald-400 font-bold block mt-0.5">SQLite نشط</span>
-                                  </div>
-                                )}
-                                {options.enableVoice && (
-                                  <div className="bg-slate-900/30 border border-slate-850/60 p-1.5 rounded-lg text-center">
-                                    <span className="text-[7px] text-slate-400 font-medium block">مؤلّد النغمات</span>
-                                    <span className="text-[6.5px] text-indigo-400 font-bold block mt-0.5">صوت مفعّل</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Trigger mock button depending on theme */}
-                            <div className="space-y-1.5">
-                              <button className={`w-full py-1.5 rounded-lg bg-gradient-to-r ${getThemeGradient(options.colorTheme)} text-slate-950 font-bold text-[8.5px] shadow-sm`}>
-                                تـأكـيـد و دخـول
-                              </button>
-                              
-                              {options.enableOfflinePwa && (
-                                <div className="text-[6.5px] text-slate-500 text-center flex items-center justify-center gap-1">
-                                  <Zap size={7} className="text-amber-500 animate-pulse" />
-                                  <span>يعمل بالكامل دون اتصال (PWA)</span>
-                                </div>
+                                ))
                               )}
                             </div>
 
                           </div>
 
-                          {/* Bottom gesture line indicator */}
-                          <div className="w-16 h-1 bg-slate-850 rounded-full mx-auto" />
-
                         </div>
-                      </div>
 
-                      {/* Footer note info for compilation */}
-                      <div className="p-3.5 bg-slate-900/25 border-t border-slate-900 text-center">
-                        <span className="text-[9px] text-slate-500 leading-relaxed block">
-                          💡 <strong>توافق التصدير والموثقية:</strong> هذه الأكواد الموطنة تفتح إمكانيات تجميع عتاد الأندرويد والـ PWA محلياً بالكامل. يمكنك الضغط على "تطبيق في المحرر" وتحسين البرنامج حسب رغبتك.
-                        </span>
                       </div>
-                    </div>
+                    )}
+
                   </div>
+
                 </div>
               )}
             </div>

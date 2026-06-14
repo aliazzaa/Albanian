@@ -166,6 +166,35 @@ export const BayanInteractiveReport: React.FC = () => {
         </div>
       </div>
 
+      {/* Step by step PDF Guidance Panel */}
+      <div className="no-print bg-slate-900/40 border border-indigo-500/20 rounded-xl p-4 md:p-5 text-right relative overflow-hidden">
+        <div className="absolute top-0 right-0 h-1 bg-gradient-to-l from-indigo-500 to-purple-500 w-full" />
+        <div className="flex items-start gap-3">
+          <div className="p-2 bg-indigo-950/80 text-indigo-400 rounded-lg border border-indigo-800/40 mt-0.5 shrink-0">
+            <BookOpen size={16} />
+          </div>
+          <div className="space-y-2">
+            <h4 className="text-xs font-bold text-white flex items-center gap-2">
+              💡 خطوات تنزيل وحفظ التقرير كـ PDF بالتفصيل خطوة بخطوة:
+            </h4>
+            <ul className="list-decimal list-inside space-y-1.5 text-[11px] text-slate-300 leading-relaxed pr-1">
+              <li>
+                <span className="text-indigo-300 font-bold">الفتح الخارجي (مستحسن):</span> اضغط على خيار <strong className="text-white">"Open in New Tab" / "فتح في علامة تبويب جديدة"</strong> في الشريط العلوي الحاضن لمعاينة الاستوديو للتخلص من شروط حماية المتصفحات على نوافذ الـ iframe المدمجة.
+              </li>
+              <li>
+                <span className="text-indigo-300 font-bold">بدء الطباعة:</span> اضغط على زر <strong className="text-indigo-400">"طباعة / تصدير التقرير PDF"</strong> الذهبي أعلاه أو استخدم الاختصار المباشر <code className="bg-slate-950 px-1 py-0.5 rounded font-mono text-xs select-all text-indigo-400">Ctrl + P</code> (أو Cmd+P على أجهزة الماك).
+              </li>
+              <li>
+                <span className="text-indigo-300 font-bold">تغيير الوجهة لـ PDF:</span> في نافذة خيارات الطباعة الخاصة بمتصفحك، قم بتغيير حقل <strong className="text-white">"الوجهة" (Destination)</strong> أو الطابعة إلى <strong className="text-emerald-400 font-bold">"حفظ بتنسيق PDF" (Save as PDF)</strong>.
+              </li>
+              <li>
+                <span className="text-indigo-300 font-bold">الحصول على المظهر الداكن الفاخر:</span> اضغط على <strong className="text-white">"مزيد من الإعدادات" (More settings)</strong>، ثم تأكد من تفعيل مربع <strong className="text-emerald-400">"رسومات الخلفية" (Background Graphics)</strong> لتصدير التقرير بألوانه واستايلاته الكاملة، مع تعطيل "الرؤوس والتذييلات" لإزالة روابط الصفحات الخارجية. ثم اضغط على <strong className="text-emerald-400 font-bold">"حفظ" (Save)</strong>!
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {/* Main Report Document - Document Layout */}
       <div 
         ref={printAreaRef}
