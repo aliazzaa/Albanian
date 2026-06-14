@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Code2, FileJson, Menu, Layers, FileCode, FileText, Bug, Puzzle, Globe, Square, Sparkles, Cpu, Brain, ChevronDown, Terminal } from 'lucide-react';
+import { Play, Code2, FileJson, Menu, Layers, FileCode, FileText, Bug, Puzzle, Globe, Square, Sparkles, Cpu, Brain, ChevronDown, Terminal, Wand2 } from 'lucide-react';
 import CodeEditor from './components/CodeEditor';
 import Output from './components/Output';
 import AICopilot from './components/AICopilot';
@@ -12,6 +12,7 @@ import ExtensionsModal from './components/ExtensionsModal';
 import { AndroidTemplatesLibrary } from './components/AndroidTemplatesLibrary';
 import { BayanToAndroidOptimizer } from './components/BayanToAndroidOptimizer';
 import { BayanAIToolkit } from './components/BayanAIToolkit';
+import { BayanAppGenerator } from './components/BayanAppGenerator';
 import { AlBayanCompiler } from './services/compiler';
 import { runAlBayanCode, DebugController } from './services/runtime';
 import { ExecutionResult, TranspilationResult, CodeMode, DebugState, FileSystemItem } from './types';
@@ -30,6 +31,7 @@ function App() {
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isOptimizerOpen, setIsOptimizerOpen] = useState(false);
   const [isAIToolkitOpen, setIsAIToolkitOpen] = useState(false);
+  const [isAppGeneratorOpen, setIsAppGeneratorOpen] = useState(false);
   const [transpiledTab, setTranspiledTab] = useState<'python' | 'js' | 'java' | 'html' | 'cpp' | 'csharp' | 'go' | 'rust' | 'php'>('python');
   const [rightActiveTab, setRightActiveTab] = useState<'output' | 'ai'>('output');
   
@@ -78,6 +80,10 @@ function App() {
     setTranspilation(null);
     setMode(CodeMode.EDITOR); 
     setDebugMode(withDebug);
+    
+    // Switch to output tab automatically to view simulation
+    setRightActiveTab('output');
+    setActiveMobileTab('output');
     
     // Reset Debug State
     setDebugState({
@@ -285,6 +291,21 @@ function App() {
         onInstantRun={(newCode) => {
           setCode(newCode);
           setRightActiveTab('output');
+          setActiveMobileTab('output');
+          setTimeout(() => {
+            handleRun(false);
+          }, 100);
+        }}
+      />
+
+      <BayanAppGenerator
+        isOpen={isAppGeneratorOpen}
+        onClose={() => setIsAppGeneratorOpen(false)}
+        onApplyCode={setCode}
+        onInstantRun={(newCode) => {
+          setCode(newCode);
+          setRightActiveTab('output');
+          setActiveMobileTab('output');
           setTimeout(() => {
             handleRun(false);
           }, 100);
@@ -298,6 +319,7 @@ function App() {
         onInstantRun={(newCode) => {
           setCode(newCode);
           setRightActiveTab('output');
+          setActiveMobileTab('output');
           setTimeout(() => {
             handleRun(false);
           }, 100);
@@ -316,7 +338,7 @@ function App() {
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         
-        <header className="h-16 border-b border-slate-800 flex items-center justify-between px-4 sm:px-6 bg-slate-900/50 backdrop-blur-sm z-10 shrink-0">
+        <header className="h-16 border-b border-slate-800 flex items-center justify-between px-4 sm:px-6 bg-slate-900/50 backdrop-blur-sm z-40 shrink-0">
           <div className="flex items-center gap-3">
              <button 
               className="lg:hidden p-2 text-slate-400 hover:text-white"
@@ -395,6 +417,16 @@ function App() {
             </button>
 
             <button
+              onClick={() => setIsAppGeneratorOpen(true)}
+              className="hidden lg:flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-bold text-sky-400 bg-sky-500/10 border border-sky-500/25 hover:bg-sky-500/20 hover:border-sky-500/40 hover:text-sky-300 transition-all shadow-md active:scale-95"
+              title="مولد وتطوير تطبيقات ومواقع أندرويد بالبيان"
+              id="desktop-app-generator-btn"
+            >
+              <Wand2 size={18} className="animate-pulse text-sky-400" />
+              <span>مولد التطبيقات 🚀</span>
+            </button>
+
+            <button
               onClick={() => setIsOptimizerOpen(true)}
               className="hidden lg:flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-bold text-amber-400 bg-amber-500/10 border border-amber-500/25 hover:bg-amber-500/20 hover:border-amber-500/40 hover:text-amber-300 transition-all shadow-md active:scale-95"
               title="معزز الأكواد للأندرويد"
@@ -404,8 +436,53 @@ function App() {
               <span>معزز الأداء ⚡</span>
             </button>
 
+            {/* Premium Header Run & Debug Button Group (Always Visible on all sizes!) */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => {
+                  handleRun(false);
+                  setRightActiveTab('output');
+                  setActiveMobileTab('output');
+                }}
+                disabled={isProcessing && !debugMode}
+                className={`relative group flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                  isProcessing && !debugMode
+                    ? 'bg-slate-700 text-slate-400 cursor-wait'
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/45 hover:scale-105 active:scale-95 cursor-pointer border border-emerald-400/20'
+                }`}
+                title="تشغيل المترجم والمعاينة فورياً (Run)"
+                id="header-global-run-btn"
+              >
+                {isProcessing && !debugMode ? (
+                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <Play size={14} fill="currentColor" />
+                )}
+                <span>تشغيل الكود 💻</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  handleRun(true);
+                  setRightActiveTab('output');
+                  setActiveMobileTab('output');
+                }}
+                disabled={isProcessing}
+                className={`hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                  debugMode
+                    ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/30'
+                    : 'bg-orange-500/10 text-orange-400 border border-orange-500/25 hover:bg-orange-500/20 hover:text-orange-300 active:scale-95'
+                }`}
+                title="تصحيح الكود خطوة بخطوة (Debug)"
+                id="header-global-debug-btn"
+              >
+                <Bug size={14} />
+                <span>تصحيح</span>
+              </button>
+            </div>
+
             {/* Mobile Actions Dropdown menu */}
-            <div className="relative lg:hidden">
+            <div className="relative lg:hidden z-40">
               <button
                 onClick={() => setIsToolsMenuOpen(!isToolsMenuOpen)}
                 className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700/80 border border-slate-700 active:scale-95 transition-all shadow-sm"
@@ -417,8 +494,8 @@ function App() {
 
               {isToolsMenuOpen && (
                 <>
-                  <div className="fixed inset-0 z-30" onClick={() => setIsToolsMenuOpen(false)} />
-                  <div className="absolute left-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-40 p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="fixed inset-0 z-40" onClick={() => setIsToolsMenuOpen(false)} />
+                  <div className="absolute left-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-150">
                     <button
                       onClick={() => {
                         handleGenerateDocs();
@@ -441,6 +518,18 @@ function App() {
                     >
                       <span className="font-semibold">إضافات المتصفح والمحرر</span>
                       <Puzzle size={15} className="text-slate-400" />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsAppGeneratorOpen(true);
+                        setIsToolsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs text-sky-400 hover:bg-sky-500/10 transition-colors text-right font-bold"
+                      id="mobile-tool-generator"
+                    >
+                      <span>مولد التطبيقات والمواقع 🚀</span>
+                      <Wand2 size={15} className="text-sky-400 animate-pulse" />
                     </button>
 
                     <button

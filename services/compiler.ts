@@ -249,6 +249,18 @@ export class AlBayanCompiler {
     js = js.replace(/(وسائط|BayanMediaEngine)\.صوت\((.*?),\s*(.*?)\)/g, 'await __sys_media_audio($2, $3, "")');
     js = js.replace(/(وسائط|BayanMediaEngine)\.معرض_صور\((.*?),\s*(.*?)\)/g, 'await __sys_media_gallery($2, $3)');
     
+    // Bayan Graphics & Chart Translation (أرسم أو رسم)
+    js = js.replace(/(أرسم|رسم)\.رسم_بياني\((.*?),\s*(.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_graphics_chart($2, $3, $4, $5)');
+    js = js.replace(/(أرسم|رسم)\.رسم_بياني\((.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_graphics_chart($2, $3, $4)');
+    js = js.replace(/(أرسم|رسم)\.رسم_بياني\((.*?),\s*(.*?)\)/g, 'await __sys_graphics_chart($2, $3)');
+    js = js.replace(/(أرسم|رسم)\.شكل\((.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_graphics_shape($2, $3, $4, $5, $6, $7)');
+    js = js.replace(/(أرسم|رسم)\.شكل\((.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_graphics_shape($2, $3, $4, $5, $6)');
+    js = js.replace(/(أرسم|رسم)\.خط\((.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_graphics_line($2, $3, $4, $5, $6)');
+    js = js.replace(/(أرسم|رسم)\.خط\((.*?),\s*(.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_graphics_line($2, $3, $4, $5)');
+    js = js.replace(/(أرسم|رسم)\.نص\((.*?),\s*(.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_graphics_text($2, $3, $4, $5)');
+    js = js.replace(/(أرسم|رسم)\.نص\((.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_graphics_text($2, $3, $4)');
+    js = js.replace(/(أرسم|رسم)\.مسح\(\)/g, 'await __sys_graphics_clear()');
+    
     // Future-Android Lightweight Quantum, AI & self-cleaning rules
     js = js.replace(/أندرويد\.محرك_كمومي\((.*?)\)/g, 'await __sys_android_future_quantum($1)');
     js = js.replace(/أندرويد\.ذكاء_سحابي_دمج\((.*?)\)/g, 'await __sys_android_future_ai($1)');

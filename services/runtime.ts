@@ -1,6 +1,6 @@
 
 import { generateMediaAsset } from "./openMediaService";
-import { ExecutionResult, HtmlElement, RuntimeCallbacks } from "../types";
+import { ExecutionResult, HtmlElement, RuntimeCallbacks, GraphicalShape, GraphicalChart } from "../types";
 
 // In-memory virtual file system for the current session
 const VIRTUAL_FILES: Record<string, string> = {};
@@ -91,6 +91,10 @@ export const runAlBayanCode = async (
   const audio: string[] = [];
   const videos: { frames: string[], prompt: string }[] = [];
   const htmlElements: HtmlElement[] = [];
+  
+  const graphicsShapes: GraphicalShape[] = [];
+  let graphicsChart: GraphicalChart | undefined = undefined;
+  let canvasActive = false;
   
   let currentAndroidApp: any = null;
   let currentScreen: string = "الرئيسية";
@@ -831,6 +835,66 @@ export const runAlBayanCode = async (
         logs.push(`> [DOM] <${tag}> ${content} ${id ? `(id=${id})` : ''}`);
     },
 
+    // 6.5 Graphical Output Simulation (BayanGraphicsEngine)
+    __sys_graphics_chart: async (labels: any, data: any, type?: string, title?: string) => {
+        const cleanLabels = Array.isArray(labels) ? labels.map(String) : [];
+        const cleanData = Array.isArray(data) ? data.map(Number) : [];
+        const chartType = (type && ['bar', 'line', 'pie', 'radar'].includes(type.toLowerCase())) ? type.toLowerCase() as any : 'bar';
+        graphicsChart = {
+            type: chartType,
+            labels: cleanLabels,
+            data: cleanData,
+            title: title ? String(title) : "مخرجات بيانية"
+        };
+        canvasActive = true;
+        logs.push(`📊 [رسم بياني] تم تمثيل البيانات بيانيا (${chartType}): [${cleanLabels.join(', ')}] = [${cleanData.join(', ')}]`);
+    },
+
+    __sys_graphics_shape: async (type: string, x: number, y: number, width: number, height: number, color?: string) => {
+        graphicsShapes.push({
+            type: type as any,
+            x: Number(x),
+            y: Number(y),
+            width: Number(width),
+            height: Number(height),
+            color: color ? String(color) : "#10b981"
+        });
+        canvasActive = true;
+        logs.push(`🎨 [شكل هندسي] رسم ${type === 'circle' ? 'دائرة' : 'مستطيل'} عند الإحداثي (${x}, ${y}) بأبعاد (${width}x${height}) بلون ${color || 'تلقائي'}`);
+    },
+
+    __sys_graphics_line: async (x1: number, y1: number, x2: number, y2: number, color?: string) => {
+        graphicsShapes.push({
+            type: 'line',
+            x: Number(x1),
+            y: Number(y1),
+            x2: Number(x2),
+            y2: Number(y2),
+            color: color ? String(color) : "#3b82f6"
+        });
+        canvasActive = true;
+        logs.push(`🎨 [رسم خط] من (${x1}, ${y1}) إلى (${x2}, ${y2})`);
+    },
+
+    __sys_graphics_text: async (x: number, y: number, text: any, color?: string) => {
+        graphicsShapes.push({
+            type: 'text',
+            x: Number(x),
+            y: Number(y),
+            text: String(text),
+            color: color ? String(color) : "#ffffff"
+        });
+        canvasActive = true;
+        logs.push(`🎨 [نص رسومي] كتابة "${text}" في الإحداثي (${x}, ${y})`);
+    },
+
+    __sys_graphics_clear: async () => {
+        graphicsShapes.length = 0;
+        graphicsChart = undefined;
+        canvasActive = false;
+        logs.push(`🧹 [لوحة الرسم] مسح لوحة الرسم البياني بالكامل.`);
+    },
+
     // 7. External Libraries Loader
     __sys_import: async (libIdentifier: string) => {
         const libConfig: LibraryConfig = KNOWN_LIBRARIES[libIdentifier] || { url: libIdentifier };
@@ -913,14 +977,24 @@ export const runAlBayanCode = async (
         generatedAudio: audio,
         generatedVideos: videos,
         generatedHtmlElements: htmlElements,
-        generatedAndroidApp: currentAndroidApp || undefined
+        generatedAndroidApp: currentAndroidApp || undefined,
+        generatedGraphics: canvasActive ? {
+            shapes: graphicsShapes,
+            chart: graphicsChart,
+            canvasActive
+        } : undefined
     };
 
   } catch (error: any) {
     return { 
         output: logs, 
         error: `خطأ وقت التشغيل (Runtime Error): ${error.message}`,
-        generatedAndroidApp: currentAndroidApp || undefined
+        generatedAndroidApp: currentAndroidApp || undefined,
+        generatedGraphics: canvasActive ? {
+            shapes: graphicsShapes,
+            chart: graphicsChart,
+            canvasActive
+        } : undefined
     };
   }
 };

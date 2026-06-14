@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ExecutionResult, HtmlElement } from '../types';
 import { RefreshCw, Globe, ArrowLeft, ArrowRight, Lock } from 'lucide-react';
+import { GraphicalOutput } from './GraphicalOutput';
 
 interface OutputProps {
   result: ExecutionResult | null;
@@ -498,6 +499,13 @@ const Output: React.FC<OutputProps> = ({ result, isLoading }) => {
         {/* Render Generated Native Android Application Mockup */}
         {result?.generatedAndroidApp && (
             <AndroidEmulator app={result.generatedAndroidApp} />
+        )}
+
+        {/* Render Generated Graphics (Charts & Drawing Shapes) */}
+        {result?.generatedGraphics && (
+            <div className="my-4">
+                <GraphicalOutput graphics={result.generatedGraphics} />
+            </div>
         )}
 
         {/* Standard Console Logs */}

@@ -29,6 +29,26 @@ export interface AndroidAppResult {
   apkName: string;
 }
 
+export interface GraphicalShape {
+  type: 'circle' | 'rect' | 'line' | 'text';
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  x2?: number;
+  y2?: number;
+  radius?: number;
+  color?: string;
+  text?: string;
+}
+
+export interface GraphicalChart {
+  type: 'bar' | 'line' | 'pie' | 'radar';
+  labels: string[];
+  data: number[];
+  title?: string;
+}
+
 export interface ExecutionResult {
   output: string[];
   generatedImages?: string[]; // Base64 strings
@@ -36,6 +56,11 @@ export interface ExecutionResult {
   generatedVideos?: { frames: string[], prompt: string }[]; // Video simulation (Frames)
   generatedHtmlElements?: HtmlElement[]; // Generated DOM elements for Web Preview
   generatedAndroidApp?: AndroidAppResult; // For simulated native Android rendering
+  generatedGraphics?: {
+    shapes?: GraphicalShape[];
+    chart?: GraphicalChart;
+    canvasActive: boolean;
+  };
   error?: string;
 }
 

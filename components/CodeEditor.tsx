@@ -31,14 +31,24 @@ const BUILT_IN_FUNCTIONS = [
 ];
 
 const STD_LIBS = [
-  "رياضيات", "نصوص", "قوائم", "وقت"
+  "رياضيات", "نصوص", "قوائم", "وقت", "أندرويد", "قاعدة_بيانات", "نغمة", "تعلم", "رسم", "أرسم"
 ];
 
 const STD_LIB_MEMBERS: Record<string, string[]> = {
   "رياضيات": ["جذر", "أس", "عشوائي", "تقريب", "ط", "سقف", "أرضية"],
   "نصوص": ["طول", "بحث", "استبدال", "تكبير", "تصغير", "جزء"],
   "قوائم": ["أضف", "احذف", "رتب", "اعكس", "طول", "نص"],
-  "وقت": ["الآن", "تاريخ", "انتظر"]
+  "وقت": ["الآن", "تاريخ", "انتظر"],
+  "رسم": ["رسم_بياني", "شكل", "خط", "نص", "مسح"],
+  "أرسم": ["رسم_بياني", "شكل", "خط", "نص", "مسح"],
+  "أندرويد": [
+    "صناعة_تطبيق", "لوح_الألوان", "إضافة_واجهة", "نمط_الواجهة", "عنوان_رئيسي", 
+    "نص", "رخصة_الوصول", "زر_تفاعلي", "تهيئة_موقع_ويب", "بناء_APK", 
+    "اهتزاز_لمسي", "رسالة_منبثقة"
+  ],
+  "قاعدة_بيانات": ["تهيئة", "تحديث_أو_إضافة", "البحث", "حذف"],
+  "نغمة": ["تشغيل_مسار", "تأثير_صدى", "إيقاف"],
+  "تعلم": ["عند_النقر", "توقع", "تدريب", "قراءة_نموذج"]
 };
 
 // --- Helper Types for Suggestions ---
@@ -220,16 +230,52 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     };
   };
 
-  // 2. Extract user variables from code
-  const getUserDefinedVariables = useMemo(() => {
-     const vars = new Set<string>();
-     // Match 'عرف x', 'مهمة y', 'صنف z'
-     const regex = /(?:عرف|مهمة|صنف)\s+([\u0600-\u06FFa-zA-Z_][\u0600-\u06FFa-zA-Z0-9_]*)/g;
+  // 2. Extract user-defined entities (functions, classes, variables) from code
+  const getUserDefinedEntities = useMemo(() => {
+     const entities: Suggestion[] = [];
+     const found = new Set<string>();
+
+     // Match functions: مهمة اسم_الدالة
+     const funcRegex = /مهمة\s+([\u0600-\u06FFa-zA-Z_][\u0600-\u06FFa-zA-Z0-9_]*)/g;
      let match;
-     while ((match = regex.exec(code)) !== null) {
-         if (match[1]) vars.add(match[1]);
+     while ((match = funcRegex.exec(code)) !== null) {
+         if (match[1] && !found.has(match[1])) {
+             entities.push({
+                 label: match[1],
+                 type: 'function',
+                 detail: 'دالة مستخدم معرفة 🛠️'
+             });
+             found.add(match[1]);
+         }
      }
-     return Array.from(vars);
+
+     // Match classes: صنف اسم_الصنف
+     const classRegex = /صنف\s+([\u0600-\u06FFa-zA-Z_][\u0600-\u06FFa-zA-Z0-9_]*)/g;
+     while ((match = classRegex.exec(code)) !== null) {
+         if (match[1] && !found.has(match[1])) {
+             entities.push({
+                 label: match[1],
+                 type: 'class',
+                 detail: 'صنف مستخدم معرف 🏗️'
+             });
+             found.add(match[1]);
+         }
+     }
+
+     // Match variables: عرف اسم_المتغير
+     const varRegex = /عرف\s+([\u0600-\u06FFa-zA-Z_][\u0600-\u06FFa-zA-Z0-9_]*)/g;
+     while ((match = varRegex.exec(code)) !== null) {
+         if (match[1] && !found.has(match[1])) {
+             entities.push({
+                 label: match[1],
+                 type: 'variable',
+                 detail: 'متغير مستخدم معرف 📦'
+             });
+             found.add(match[1]);
+         }
+     }
+
+     return entities;
   }, [code]);
 
   // 3. Handle Text Change & Trigger Suggestions
@@ -275,7 +321,13 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             addMatch(BUILT_IN_FUNCTIONS, 'function', 'دالة داخلية');
             addMatch(AI_MEDIA_COMMANDS, 'function', 'أمر ذكاء اصطناعي');
             addMatch(STD_LIBS, 'module', 'مكتبة قياسية');
-            addMatch(getUserDefinedVariables, 'variable', 'متغير مستخدم');
+            
+            // Add custom user-defined entities
+            getUserDefinedEntities.forEach(ent => {
+                if (ent.label.toLowerCase().startsWith(lowerWord) && ent.label !== currentWord) {
+                    filtered.push(ent);
+                }
+            });
         }
 
         if (filtered.length > 0) {
