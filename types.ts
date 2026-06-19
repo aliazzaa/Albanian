@@ -75,6 +75,7 @@ export interface TranspilationResult {
   rust?: string;
   php?: string;
   kotlin?: string;
+  swift?: string;
 }
 
 export enum CodeMode {

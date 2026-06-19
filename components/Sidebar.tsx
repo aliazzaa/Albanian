@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Layers, Zap, Book, Download, FolderKanban, Smartphone } from 'lucide-react';
+import { BookOpen, Layers, Zap, Book, Download, FolderKanban, Smartphone, GraduationCap } from 'lucide-react';
 import { EXAMPLES, SYNTAX_MAP } from '../constants';
 
 interface SidebarProps {
@@ -11,6 +11,7 @@ interface SidebarProps {
   onDownloadExtension: () => void;
   onOpenProjectManager: () => void;
   onOpenTemplates: () => void;
+  onOpenAcademy: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -20,7 +21,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onOpenDocs, 
   onDownloadExtension,
   onOpenProjectManager,
-  onOpenTemplates
+  onOpenTemplates,
+  onOpenAcademy
 }) => {
 
   const handleDownloadDictionary = () => {
@@ -98,6 +100,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                 >
                   <Book size={20} />
                   <span className="font-bold">دليل الاستخدام</span>
+                </button>
+
+                <button 
+                  onClick={() => {
+                    onOpenAcademy();
+                    if (window.innerWidth < 1024) toggle();
+                  }}
+                  className="w-full flex items-center gap-2 bg-gradient-to-l from-amber-950/20 to-yellow-950/20 hover:from-amber-900/30 hover:to-yellow-900/30 text-amber-400 border border-amber-900/45 p-3 rounded-lg transition-all shadow-md shadow-amber-950/10"
+                  title="أكاديمية لغة البيان لتعلم البرمجة العربية من الصفر للاحتراف"
+                >
+                  <GraduationCap size={20} className="text-amber-400 animate-pulse" />
+                  <span className="font-extrabold">أكاديمية البيان 🎓</span>
                 </button>
 
                 <button 

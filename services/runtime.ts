@@ -133,6 +133,83 @@ export const runAlBayanCode = async (
         تاريخ: () => new Date().toLocaleDateString('ar-SA'),
         انتظر: async (ms: number) => new Promise(res => setTimeout(res, ms))
     },
+    قاعدة_بيانات: {
+        تهيئة: async (name: string) => {
+            logs.push(`💾 [قاعدة بيانات] تم تهيئة وربط مسجل البيانات المحلي: "${name}"`);
+            return true;
+        },
+        تحديث_أو_إضافة: async (table: string, key: string, value: any) => {
+            logs.push(`💾 [قاعدة بيانات] تم إدراج/تحديث في جدول [${table}]: { ${key}: "${value}" }`);
+            return true;
+        },
+        البحث: async (table: string, key: string) => {
+            logs.push(`🔍 [قاعدة بيانات] جاري استعلام الكائن [${key}] من جدول [${table}]...`);
+            return `ملف استعراضي لـ ${key}`;
+        },
+        حذف: async (table: string, key: string) => {
+            logs.push(`🗑️ [قاعدة بيانات] تم حذف السجل للمعرف [${key}] من [${table}]`);
+            return true;
+        }
+    },
+    نغمة: {
+        تشغيل_مسار: async (note: string, duration: string) => {
+            logs.push(`🔊 [نغمة هجينة] جاري استدعاء المكثفات وتخليق الرنين للمسار: ${note} بمدة ${duration}`);
+            try {
+                const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+                if (AudioCtx) {
+                    const notesMap: Record<string, number> = {
+                        'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23, 'G4': 392.00, 'A4': 440.00, 'B4': 493.88,
+                        'C5': 523.25, 'D5': 587.33, 'E5': 659.25, 'F5': 698.46, 'G5': 783.99, 'A5': 880.00, 'B5': 987.77
+                    };
+                    const freq = notesMap[note] || 440;
+                    const dur = duration === '8n' ? 0.2 : duration === '16n' ? 0.1 : 0.3;
+                    const ctx = new AudioCtx();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.04, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + dur);
+                }
+            } catch (e) {}
+            return true;
+        },
+        تأثير_صدى: async (type: string) => {
+            logs.push(`📢 [تأثير صدى] دمج وتطبيق مرشح الصدى: "${type}" على عتاد الصوت.`);
+            return true;
+        },
+        إيقاف: async () => {
+            logs.push(`🔇 [نغمة] إيقاف تشغيل رنين الصوت الهجين.`);
+            return true;
+        }
+    },
+    تعلم: {
+        عند_النقر: async (target: string, callback: () => Promise<void>) => {
+            logs.push(`⚡ [مستمع الحدث] تسجيل مستمع تفاعلي (عند النقر) على الكائن: "${target}"`);
+            try {
+                logs.push(`   * [تفقد تفاعلي] محاكاة تفاعل نقرة المستخدم فوراً على "${target}":`);
+                await callback();
+            } catch (e: any) {
+                logs.push(`   ❌ [حدث غير مستقر] خطأ أثناء نقر "${target}": ${e.message}`);
+            }
+            return true;
+        },
+        توقع: async (model: any, inputs: any) => {
+            logs.push(`🧠 [تعلم ذكي] جاري التوقع والاستدلال للمدخلات باستخدام مصفوفات الوزن الذاتي...`);
+            return [0.98, 0.02];
+        },
+        تدريب: async (model: any, epochs: number) => {
+            logs.push(`🧠 [تدريب] البدء في تدريب النموذج العصبي لـ ${epochs} دورات تطورية...`);
+            return { fitness: "0.999", duration: "1.2s" };
+        },
+        قراءة_نموذج: async (modelName: string) => {
+            logs.push(`🧠 [قراءة] قراءة محاذاة أوزان النموذج المدرب: ${modelName}`);
+            return {};
+        }
+    },
 
     // 1. System Logger
     __sys_log: async (msg: any) => {

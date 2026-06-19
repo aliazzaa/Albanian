@@ -17,6 +17,7 @@ import { BayanVmVisualizer } from './components/BayanVmVisualizer';
 import { BayanWasmVisualizer } from './components/BayanWasmVisualizer';
 import { BayanRoadmapWithArchitecture } from './components/BayanRoadmapWithArchitecture';
 import { BayanInteractiveReport } from './components/BayanInteractiveReport';
+import { BayanAcademy } from './components/BayanAcademy';
 import { AlBayanCompiler } from './services/compiler';
 import { AlBayanLexer, AlBayanParser, AlBayanSemanticAnalyzer } from './services/parser';
 import { AlBayanBytecodeCompiler, AlBayanVMInterpreter } from './services/vm';
@@ -33,13 +34,14 @@ function App() {
   const [mode, setMode] = useState<CodeMode>(CodeMode.EDITOR);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
+  const [isAcademyOpen, setIsAcademyOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isExtModalOpen, setIsExtModalOpen] = useState(false);
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isOptimizerOpen, setIsOptimizerOpen] = useState(false);
   const [isAIToolkitOpen, setIsAIToolkitOpen] = useState(false);
   const [isAppGeneratorOpen, setIsAppGeneratorOpen] = useState(false);
-  const [transpiledTab, setTranspiledTab] = useState<'python' | 'js' | 'java' | 'html' | 'cpp' | 'csharp' | 'go' | 'rust' | 'php' | 'kotlin' | 'ast' | 'vm' | 'wasm' | 'roadmap' | 'report'>('python');
+  const [transpiledTab, setTranspiledTab] = useState<'python' | 'js' | 'java' | 'html' | 'cpp' | 'csharp' | 'go' | 'rust' | 'php' | 'kotlin' | 'swift' | 'ast' | 'vm' | 'wasm' | 'roadmap' | 'report'>('python');
   const [rightActiveTab, setRightActiveTab] = useState<'output' | 'ai'>('output');
   
   // Mobile UI Responsive States
@@ -338,6 +340,16 @@ function App() {
         onClose={() => setIsDocsOpen(false)}
         onPrintPDF={handlePrintPDF} 
       />
+
+      <BayanAcademy
+        isOpen={isAcademyOpen}
+        onClose={() => setIsAcademyOpen(false)}
+        onLoadExample={(exampleCode) => {
+          setCode(exampleCode);
+          setIsAcademyOpen(false);
+          setMode(CodeMode.EDITOR);
+        }}
+      />
       
       <ProjectModal 
         isOpen={isProjectModalOpen}
@@ -410,6 +422,7 @@ function App() {
         onDownloadExtension={handleDownloadExtension}
         onOpenProjectManager={() => setIsProjectModalOpen(true)}
         onOpenTemplates={() => setIsTemplatesOpen(true)}
+        onOpenAcademy={() => setIsAcademyOpen(true)}
       />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
@@ -658,7 +671,7 @@ function App() {
                 <div className="w-full h-full bg-[#1e293b] rounded-lg border border-slate-700 overflow-hidden flex flex-col shadow-inner">
                     <div className="flex bg-slate-800 border-b border-slate-700 overflow-x-auto shrink-0 justify-between items-center pr-2">
                         <div className="flex custom-scrollbar overflow-x-auto">
-                            {['python', 'js', 'java', 'html', 'cpp', 'csharp', 'go', 'rust', 'php', 'kotlin', 'ast', 'vm', 'wasm', 'roadmap', 'report'].map(lang => (
+                            {['python', 'js', 'java', 'html', 'cpp', 'csharp', 'go', 'rust', 'php', 'kotlin', 'swift', 'ast', 'vm', 'wasm', 'roadmap', 'report'].map(lang => (
                                 <button 
                                 key={lang}
                                 onClick={() => setTranspiledTab(lang as any)}
@@ -668,13 +681,14 @@ function App() {
                                 {lang === 'js' && <FileCode size={14} />}
                                 {lang === 'html' && <Globe size={14} />}
                                 {lang === 'kotlin' && <FileCode size={14} />}
+                                {lang === 'swift' && <FileCode size={14} className="text-orange-400" />}
                                 {['java', 'cpp', 'csharp', 'go', 'rust', 'php'].includes(lang) && <Layers size={14} />}
                                 {lang === 'ast' && <Cpu size={14} className="text-emerald-400" />}
                                 {lang === 'vm' && <Terminal size={14} className="text-cyan-405 animate-spin" style={{ animationDuration: '6s' }} />}
                                 {lang === 'wasm' && <Sparkles size={14} className="text-emerald-300" />}
                                 {lang === 'roadmap' && <Wand2 size={14} className="text-amber-400" />}
                                 {lang === 'report' && <FileText size={14} className="text-yellow-400" />}
-                                {lang === 'ast' ? 'شجرة الإعراب AST' : lang === 'vm' ? 'الآلة الافتراضية للبيان ⚡' : lang === 'wasm' ? 'مترجم الويب WebAssembly 🚀' : lang === 'roadmap' ? 'خارطة التطور المتقدمة 🗺️' : lang === 'report' ? 'التقرير الشامل 🎓' : lang.toUpperCase()}
+                                {lang === 'ast' ? 'شجرة الإعراب AST' : lang === 'vm' ? 'الآلة الافتراضية للبيان ⚡' : lang === 'wasm' ? 'مترجم الويب WebAssembly 🚀' : lang === 'roadmap' ? 'خارطة التطور المتقدمة 🗺️' : lang === 'report' ? 'التقرير الشامل 🎓' : lang === 'swift' ? 'SWIFT (iOS) 🍎' : lang.toUpperCase()}
                             </button>
                             ))}
                         </div>
@@ -684,7 +698,7 @@ function App() {
                                     onClick={handleDownloadCode}
                                     className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1.5 rounded flex items-center gap-1 transition-colors ml-2"
                                 >
-                                    <FileCode size={12} />
+                                        <FileCode size={12} />
                                     تحميل
                                 </button>
                             </div>
@@ -704,6 +718,7 @@ function App() {
                                 {transpiledTab === 'rust' && (transpilation?.rust || "// الانتظار...")}
                                 {transpiledTab === 'php' && (transpilation?.php || "// الانتظار...")}
                                 {transpiledTab === 'kotlin' && (transpilation?.kotlin || "// الانتظار...")}
+                                {transpiledTab === 'swift' && (transpilation?.swift || "// الانتظار...")}
                             </pre>
                         ) : transpiledTab === 'vm' ? (
                             <BayanVmVisualizer code={code} />
