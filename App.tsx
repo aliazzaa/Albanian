@@ -1156,7 +1156,7 @@ function App() {
         </div>
 
         {/* Floating Actions on Mobile (Run & Debug Overlay) */}
-        {!isDocsOpen && !isAcademyOpen && !isProjectModalOpen && !isExtModalOpen && !isTemplatesOpen && !isOptimizerOpen && !isAIToolkitOpen && !isAppGeneratorOpen && !isAuthOpen && !isSidebarOpen && (
+        {!isDocsOpen && !isAcademyOpen && !isProjectModalOpen && !isExtModalOpen && !isTemplatesOpen && !isOptimizerOpen && !isAIToolkitOpen && !isAppGeneratorOpen && !isAuthOpen && !isSidebarOpen && activeMobileTab === 'editor' && (
           <div className="lg:hidden fixed bottom-20 left-4 z-50 flex flex-col gap-2.5 pointer-events-auto">
             {activeMobileTab === 'editor' && !isProcessing && (
               <button

@@ -2019,7 +2019,7 @@ export const BayanAcademy: React.FC<BayanAcademyProps> = ({ isOpen, onClose, onL
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
         
         {/* Left/Right Sidebar options - Navigation Tree & Index (indexed for quick lookup) */}
-        <aside className={`w-full lg:w-80 bg-slate-900/95 border-l border-slate-800 flex-col shrink-0 overflow-y-auto lg:flex ${mobileShowSidebar ? 'flex' : 'hidden'}`}>
+        <aside className={`w-full lg:w-80 bg-slate-900/95 border-l border-slate-800 flex-col flex-1 lg:flex-initial lg:shrink-0 overflow-y-auto lg:flex ${mobileShowSidebar ? 'flex' : 'hidden'}`}>
           
           {/* Certificate unlock tracker widgets */}
           <div className="p-4 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-b border-slate-850 space-y-3.5">
