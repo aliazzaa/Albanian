@@ -9,6 +9,7 @@ import Documentation from './components/Documentation';
 import Debugger from './components/Debugger';
 import ProjectModal from './components/ProjectModal';
 import ExtensionsModal from './components/ExtensionsModal';
+import { AuthModal } from './components/AuthModal';
 import { AndroidTemplatesLibrary } from './components/AndroidTemplatesLibrary';
 import { BayanToAndroidOptimizer } from './components/BayanToAndroidOptimizer';
 import { BayanAIToolkit } from './components/BayanAIToolkit';
@@ -34,6 +35,8 @@ function App() {
   const [mode, setMode] = useState<CodeMode>(CodeMode.EDITOR);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string; tier: string } | null>(null);
   const [isAcademyOpen, setIsAcademyOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isExtModalOpen, setIsExtModalOpen] = useState(false);
@@ -175,6 +178,18 @@ function App() {
       }
       setDebugState(prev => ({ ...prev, isDebugging: false }));
   };
+
+  // Load existing user session
+  useEffect(() => {
+    const savedUser = localStorage.getItem('bayan_platform_user');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error("Error loading user in main App:", e);
+      }
+    }
+  }, []);
 
   // Live compilation effect
   useEffect(() => {
@@ -414,6 +429,16 @@ function App() {
         }}
       />
 
+      <AuthModal 
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        userEmailFromMetadata="aliazzaa@gmail.com"
+        onAuthSuccess={(userData) => {
+          setUser(userData);
+          // Wait briefly for completion animation/sound, then modal can close or keep it updated
+        }}
+      />
+
       <Sidebar 
         onLoadExample={setCode} 
         isOpen={isSidebarOpen} 
@@ -423,6 +448,8 @@ function App() {
         onOpenProjectManager={() => setIsProjectModalOpen(true)}
         onOpenTemplates={() => setIsTemplatesOpen(true)}
         onOpenAcademy={() => setIsAcademyOpen(true)}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        currentUser={user}
       />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
@@ -525,6 +552,31 @@ function App() {
               <span>معزز الأداء ⚡</span>
             </button>
 
+            {/* Subscription Button in Header */}
+            {user ? (
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-transparent bg-clip-text bg-gradient-to-l from-emerald-400 to-teal-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 active:scale-95 transition-all shadow-md shrink-0"
+                title="الملف الشخصي والعضوية السيادية"
+                id="header-profile-btn"
+              >
+                <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-[10px] shrink-0">
+                  {user.name[0]?.toUpperCase()}
+                </div>
+                <span>{user.name} 🏅</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold text-transparent bg-clip-text bg-gradient-to-l from-white via-purple-100 to-purple-300 bg-purple-500/10 border border-purple-500/35 hover:bg-purple-500/20 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/5 active:scale-95 transition-all shadow-md shrink-0"
+                title="اشترك في المنصة للحصول على المزايا الكاملة"
+                id="header-subscribe-btn"
+              >
+                <Sparkles size={13} className="text-purple-400 animate-pulse" />
+                <span>الاشتراك بالمنصة 🌟</span>
+              </button>
+            )}
+
             {/* Premium Header Run & Debug Button Group (Always Visible on all sizes!) */}
             <div className="flex items-center gap-1.5 shrink-0">
               <button
@@ -585,6 +637,18 @@ function App() {
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setIsToolsMenuOpen(false)} />
                   <div className="absolute left-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <button
+                      onClick={() => {
+                        setIsAuthOpen(true);
+                        setIsToolsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs text-purple-400 hover:bg-purple-500/10 transition-colors text-right font-extrabold border-b border-slate-800 pb-2"
+                      id="mobile-tool-subscription"
+                    >
+                      <span>{user ? `الملف: ${user.name} 🏅` : "الاشتراك بالمنصة 🌟"}</span>
+                      <Sparkles size={15} className="text-purple-400 animate-pulse" />
+                    </button>
+
                     <button
                       onClick={() => {
                         handleGenerateDocs();
@@ -1014,7 +1078,7 @@ function App() {
         </div>
 
         {/* Floating Actions on Mobile (Run & Debug Overlay) */}
-        <div className="lg:hidden fixed bottom-20 left-4 z-45 flex flex-col gap-2.5">
+        <div className="lg:hidden fixed bottom-20 left-4 z-50 flex flex-col gap-2.5 pointer-events-auto">
           {activeMobileTab === 'editor' && !isProcessing && (
             <button
               onClick={() => {
@@ -1022,7 +1086,7 @@ function App() {
                 setActiveMobileTab('output');
                 setRightActiveTab('output');
               }}
-              className="w-11 h-11 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-orange-400 shadow-xl active:scale-90 transition-all font-bold"
+              className="w-11 h-11 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-orange-400 shadow-xl active:scale-95 hover:bg-slate-800 transition-all font-bold cursor-pointer"
               title="تصحيح برمجيات البيان"
               id="mobile-floating-debug-btn"
             >
@@ -1041,7 +1105,7 @@ function App() {
                 setRightActiveTab('output');
               }
             }}
-            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl active:scale-90 transition-all ${
+            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl active:scale-95 hover:opacity-90 transition-all cursor-pointer ${
               isProcessing || debugMode
                 ? 'bg-rose-600 text-white animate-pulse shadow-rose-900/50'
                 : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-emerald-950/40'

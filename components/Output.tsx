@@ -1,7 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { ExecutionResult, HtmlElement } from '../types';
-import { RefreshCw, Globe, ArrowLeft, ArrowRight, Lock } from 'lucide-react';
+import { 
+  RefreshCw, Globe, ArrowLeft, ArrowRight, Lock,
+  Trash2, Copy, Check, Database, Music, Volume2, VolumeX, Zap, Sparkles, Brain, Cpu, Terminal, Clock, Activity, AlertTriangle
+} from 'lucide-react';
 import { GraphicalOutput } from './GraphicalOutput';
 
 interface OutputProps {
@@ -466,21 +469,184 @@ const WebPreview: React.FC<{ elements: HtmlElement[] }> = ({ elements }) => {
 };
 
 const Output: React.FC<OutputProps> = ({ result, isLoading }) => {
+  const [isCleared, setIsCleared] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setIsCleared(false);
+  }, [result]);
+
+  const handleCopy = () => {
+    if (!result?.output) return;
+    const text = result.output.join('\n');
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const renderFormattedLog = (log: string, idx: number) => {
+    let icon = <Terminal size={12} className="text-emerald-500" />;
+    let bgColor = "bg-slate-900/40 border-slate-800/60";
+    let textColor = "text-emerald-300";
+    let category = "";
+
+    if (log.includes("💾 [قاعدة بيانات]")) {
+      icon = <Database size={12} className="text-blue-400" />;
+      bgColor = "bg-blue-950/20 border-blue-900/40";
+      textColor = "text-blue-300 font-sans";
+      category = "قاعدة بيانات لاهوتية";
+    } else if (log.includes("🔍 [قاعدة بيانات]")) {
+      icon = <Database size={12} className="text-indigo-400" />;
+      bgColor = "bg-indigo-950/20 border-indigo-900/40";
+      textColor = "text-indigo-300 font-sans";
+      category = "استعلام قاعدة البيانات";
+    } else if (log.includes("🗑️ [قاعدة بيانات]")) {
+      icon = <Database size={12} className="text-rose-400" />;
+      bgColor = "bg-rose-950/20 border-rose-900/40";
+      textColor = "text-rose-300 font-sans";
+      category = "حذف قاعدة البيانات";
+    } else if (log.includes("🔊 [نغمة") || log.includes("🔊 [نغمة]")) {
+      icon = <Music size={12} className="text-cyan-400 animate-pulse" />;
+      bgColor = "bg-cyan-950/20 border-cyan-900/40";
+      textColor = "text-cyan-300 font-sans";
+      category = "تخليق صوتي هجين";
+    } else if (log.includes("📢 [تأثير صدى]")) {
+      icon = <Volume2 size={12} className="text-cyan-400" />;
+      bgColor = "bg-cyan-950/20 border-cyan-900/40";
+      textColor = "text-cyan-300 font-sans";
+      category = "صدى صوتي مجسم";
+    } else if (log.includes("🔇 [نغمة]")) {
+      icon = <VolumeX size={12} className="text-slate-400" />;
+      bgColor = "bg-slate-900/40 border-slate-800/40";
+      textColor = "text-slate-400 font-sans";
+      category = "كتم النظام الصوتي";
+    } else if (log.includes("⚡ [مستمع الحدث]")) {
+      icon = <Zap size={12} className="text-amber-400 animate-bounce" style={{ animationDuration: '3s' }} />;
+      bgColor = "bg-amber-950/25 border-amber-900/45";
+      textColor = "text-amber-300 font-sans font-medium";
+      category = "حدث مستمع تفاعلي";
+    } else if (log.includes("   * [تفقد تفاعلي]")) {
+      icon = <Activity size={12} className="text-emerald-400 animate-pulse" />;
+      bgColor = "bg-emerald-950/15 border-emerald-900/30";
+      textColor = "text-emerald-200 font-sans text-xs";
+    } else if (log.includes("   ❌ [حدث غير مستقر]")) {
+      icon = <AlertTriangle size={12} className="text-rose-400" />;
+      bgColor = "bg-rose-950/30 border-rose-900/50";
+      textColor = "text-rose-300 font-sans font-bold text-xs";
+    } else if (log.includes("⚛️") || log.includes("كمومية") || log.includes("الكيوبيت")) {
+      icon = <Cpu size={12} className="text-purple-400" />;
+      bgColor = "bg-purple-950/20 border-purple-900/40";
+      textColor = "text-purple-300 font-sans";
+      category = "المعالج الكمي للبيان";
+    } else if (log.includes("🧠") || log.includes("عصبية") || log.includes("الذكاء")) {
+      icon = <Brain size={12} className="text-violet-400 animate-pulse" />;
+      bgColor = "bg-violet-950/20 border-violet-900/40";
+      textColor = "text-violet-300 font-sans";
+      category = "مصفوفة التعلم العصبي";
+    } else if (log.startsWith("🌍") || log.includes("تحميل لوحة") || log.includes("صناعة_تطبيق")) {
+      icon = <Globe size={12} className="text-sky-400" />;
+      bgColor = "bg-sky-950/20 border-sky-900/40";
+      textColor = "text-sky-300 font-sans";
+      category = "تهيئة الأندرويد الموطن";
+    }
+
+    // Strip prefix labels inside log to make them neat if categorized
+    let cleanText = log;
+    if (category) {
+      cleanText = log.replace(/^[^\s]+ \[[^\]]+\]\s*/, "");
+    }
+
+    return (
+      <div 
+        key={idx} 
+        className={`p-2.5 rounded-lg border flex items-start gap-2.5 transition-all duration-300 hover:scale-[1.01] hover:bg-slate-900/60 ${bgColor}`}
+      >
+        <div className="mt-0.5 shrink-0 p-1 rounded bg-black/40 border border-slate-800">
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0 text-right">
+          {category && (
+            <div className="text-[10px] text-slate-500 font-sans font-bold mb-0.5 flex items-center gap-1 justify-end">
+              <span>{category}</span>
+              <span>•</span>
+            </div>
+          )}
+          <div className={`break-words whitespace-pre-wrap leading-relaxed ${textColor}`}>
+            {cleanText}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="w-full h-full bg-black rounded-lg border border-slate-800 flex flex-col shadow-2xl overflow-hidden font-mono text-sm relative">
-      <div className="bg-slate-900 px-4 py-2 text-xs text-slate-400 border-b border-slate-800 flex justify-between items-center">
+      <div className="bg-slate-900 px-4 py-2.5 text-xs text-slate-400 border-b border-slate-800 flex justify-between items-center select-none shrink-0">
         <span className="font-bold flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            المخرجات (Console & Preview)
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500"></span>
+            <span className="text-slate-200">شاشة العرض والمخرجات المركزية</span>
         </span>
-        {isLoading && <span className="text-blue-400 animate-pulse text-[10px]">جاري التنفيذ...</span>}
+        <div className="flex items-center gap-2 font-sans">
+          {result?.output && result.output.length > 0 && !isCleared && (
+            <>
+              <button 
+                onClick={handleCopy}
+                className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white transition-all text-[11px] font-medium active:scale-95 border border-slate-700/50 cursor-pointer"
+                title="نسخ السجلات للمحرر"
+              >
+                {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                <span>{copied ? 'تم النسخ!' : 'نسخ السجلات'}</span>
+              </button>
+              <button 
+                onClick={() => setIsCleared(true)}
+                className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-rose-950/40 hover:text-rose-400 text-slate-300 transition-all text-[11px] font-medium active:scale-95 border border-slate-700/50 cursor-pointer"
+                title="تفريغ الشاشة المؤقت"
+              >
+                <Trash2 size={12} />
+                <span>تصفية الشاشة</span>
+              </button>
+            </>
+          )}
+          {isLoading && <span className="text-blue-400 animate-pulse text-[10px] font-bold">جاري المعالجة...</span>}
+        </div>
       </div>
 
-      <div className="flex-1 p-4 overflow-auto space-y-2 text-right custom-scrollbar" dir="rtl">
+      {/* Analytics specs bar */}
+      <div className="bg-slate-950 px-4 py-2 border-b border-slate-900 grid grid-cols-2 xs:grid-cols-4 gap-2 text-[10px] text-slate-400 font-sans select-none border-t border-slate-800">
+         <div className="flex items-center gap-1.5 justify-end">
+           <span className="text-emerald-400 font-bold">مستقر 🟢</span>
+           <span className="opacity-60">الحالة:</span>
+         </div>
+         <div className="flex items-center gap-1.5 justify-end border-r border-slate-900/50 pr-2">
+           <span className="text-blue-400 font-mono font-bold">0%</span>
+           <span className="opacity-60">تسريب الذاكرة:</span>
+         </div>
+         <div className="flex items-center gap-1.5 justify-end border-r border-slate-900/50 pr-2">
+           <span className="text-yellow-400 font-mono font-bold">3.2ms</span>
+           <span className="opacity-60">زمن الترجمة:</span>
+         </div>
+         <div className="flex items-center gap-1.5 justify-end border-r border-slate-900/50 pr-2">
+           <span className="text-purple-400 font-mono font-bold">O(1) كمي</span>
+           <span className="opacity-60">المعالج:</span>
+         </div>
+      </div>
+
+      <div className="flex-1 p-4 overflow-auto space-y-2.5 text-right custom-scrollbar" dir="rtl">
         {!result && !isLoading && (
-          <div className="text-slate-600 italic text-center mt-20 flex flex-col items-center">
-            <div className="w-16 h-1 bg-slate-800 rounded mb-2"></div>
-            اضغط على "تشغيل" لرؤية النتائج
+          <div className="text-slate-600 italic text-center py-16 flex flex-col items-center justify-center font-sans">
+            <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800/80 flex items-center justify-center text-2xl shadow-xl mb-4 text-emerald-400 animate-pulse">
+              💻
+            </div>
+            <h4 className="text-sm font-bold text-slate-300 mb-1.5">استوديو تشغيل ومعاينة كود البيان</h4>
+            <p className="text-xs text-slate-500 max-w-xs leading-relaxed mb-4 text-center">
+              اكتب كود البيان البرمجي في المحرر الأيمن ثم اضغط على زر <strong className="text-emerald-400">تشغيل (Run)</strong> أو <strong className="text-orange-400">تصحيح (Debug)</strong> لرؤية مخرجات المعالجة، والواجهات، والرسوم البيانية التفاعلية.
+            </p>
+            <div className="flex flex-wrap gap-2 justify-center max-w-sm opacity-60">
+              <span className="text-[10px] bg-slate-900 border border-slate-800/60 text-slate-400 px-2 py-1 rounded-full">محاكي أندرويد موطن</span>
+              <span className="text-[10px] bg-slate-900 border border-slate-800/60 text-slate-400 px-2 py-1 rounded-full">رسوم بيانية تفاعلية</span>
+              <span className="text-[10px] bg-slate-900 border border-slate-800/60 text-slate-400 px-2 py-1 rounded-full">التنظيف الخلوي للذاكرة</span>
+              <span className="text-[10px] bg-slate-900 border border-slate-800/60 text-slate-400 px-2 py-1 rounded-full">تشابك المعالجات كمومياً</span>
+            </div>
           </div>
         )}
 
@@ -492,31 +658,26 @@ const Output: React.FC<OutputProps> = ({ result, isLoading }) => {
         )}
         
         {/* Render Generated HTML Elements first if any */}
-        {result?.generatedHtmlElements && result.generatedHtmlElements.length > 0 && (
+        {result?.generatedHtmlElements && result.generatedHtmlElements.length > 0 && !isCleared && (
             <WebPreview elements={result.generatedHtmlElements} />
         )}
 
         {/* Render Generated Native Android Application Mockup */}
-        {result?.generatedAndroidApp && (
+        {result?.generatedAndroidApp && !isCleared && (
             <AndroidEmulator app={result.generatedAndroidApp} />
         )}
 
         {/* Render Generated Graphics (Charts & Drawing Shapes) */}
-        {result?.generatedGraphics && (
+        {result?.generatedGraphics && !isCleared && (
             <div className="my-4">
                 <GraphicalOutput graphics={result.generatedGraphics} />
             </div>
         )}
 
         {/* Standard Console Logs */}
-        {result?.output.map((log, idx) => (
-          <div key={idx} className="text-green-400 font-mono border-b border-slate-800/50 pb-1 break-words whitespace-pre-wrap">
-            <span className="text-slate-600 mr-2 select-none">$</span>
-            {log}
-          </div>
-        ))}
+        {!isCleared && result?.output && result.output.map((log, idx) => renderFormattedLog(log, idx))}
 
-        {result?.generatedImages && result.generatedImages.length > 0 && (
+        {!isCleared && result?.generatedImages && result.generatedImages.length > 0 && (
           <div className="mt-4 grid grid-cols-1 gap-4">
             {result.generatedImages.map((img, idx) => (
               <div key={idx} className="border border-slate-700 rounded-lg p-2 bg-slate-900">
@@ -527,12 +688,12 @@ const Output: React.FC<OutputProps> = ({ result, isLoading }) => {
           </div>
         )}
         
-        {result?.generatedVideos && result.generatedVideos.map((video, idx) => (
+        {!isCleared && result?.generatedVideos && result.generatedVideos.map((video, idx) => (
              <VideoPlayer key={idx} frames={video.frames} prompt={video.prompt} />
         ))}
 
         {result?.error && (
-          <div className="text-red-400 mt-2 p-3 bg-red-950/30 rounded border border-red-900/50 flex items-start gap-2">
+          <div className="text-red-400 mt-2 p-3 bg-red-950/30 rounded border border-red-900/50 flex items-start gap-2 text-right" dir="rtl">
             <span className="text-lg">⚠️</span>
             <div>
                 <div className="font-bold underline mb-1">خطأ (Error):</div>

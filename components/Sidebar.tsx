@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Layers, Zap, Book, Download, FolderKanban, Smartphone, GraduationCap } from 'lucide-react';
+import { BookOpen, Layers, Zap, Book, Download, FolderKanban, Smartphone, GraduationCap, User, Sparkles } from 'lucide-react';
 import { EXAMPLES, SYNTAX_MAP } from '../constants';
 
 interface SidebarProps {
@@ -12,6 +12,8 @@ interface SidebarProps {
   onOpenProjectManager: () => void;
   onOpenTemplates: () => void;
   onOpenAcademy: () => void;
+  onOpenAuth?: () => void;
+  currentUser?: { name: string; email: string; tier: string } | null;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -22,7 +24,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   onDownloadExtension,
   onOpenProjectManager,
   onOpenTemplates,
-  onOpenAcademy
+  onOpenAcademy,
+  onOpenAuth,
+  currentUser
 }) => {
 
   const handleDownloadDictionary = () => {
@@ -68,6 +72,34 @@ const Sidebar: React.FC<SidebarProps> = ({
             لغة البيان
           </h1>
           <p className="text-slate-500 text-xs mt-1">برمجة عربية بمصادر مفتوحة</p>
+
+          {/* Subscription / Auth Status in Sidebar */}
+          {onOpenAuth && (
+            <div className="mt-4">
+              {currentUser ? (
+                <div 
+                  onClick={onOpenAuth}
+                  className="w-full flex items-center gap-2.5 p-2 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700/60 hover:border-purple-550/30 cursor-pointer transition-all"
+                >
+                  <div className="w-8 h-8 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 font-black text-xs shrink-0">
+                    {currentUser.name[0]?.toUpperCase()}
+                  </div>
+                  <div className="text-right overflow-hidden">
+                    <h4 className="text-[11px] font-bold text-slate-200 truncate">{currentUser.name}</h4>
+                    <span className="text-[9px] text-purple-400 font-semibold block truncate">عضوية سيادية ⭐</span>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={onOpenAuth}
+                  className="w-full py-2 px-3 rounded-xl bg-gradient-to-l from-purple-500 to-indigo-600 hover:scale-[1.02] active:scale-[0.98] text-white text-[10.5px] font-extrabold flex items-center justify-center gap-1 shadow-md shadow-purple-950/20 transition-all"
+                >
+                  <Sparkles size={12} className="animate-pulse" />
+                  <span>الاشتراك بالمنصة 🌟</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-6">

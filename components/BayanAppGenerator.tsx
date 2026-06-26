@@ -24,6 +24,8 @@ interface GenerationOptions {
   enableVoice: boolean;
   enableOfflinePwa: boolean;
   enableHaptic: boolean;
+  enableQuantum: boolean;
+  enableNeuralNet: boolean;
 }
 
 export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
@@ -43,6 +45,8 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
     enableVoice: true,
     enableOfflinePwa: true,
     enableHaptic: true,
+    enableQuantum: true,
+    enableNeuralNet: false,
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -50,9 +54,17 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
   const [genLogs, setGenLogs] = useState<string[]>([]);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState<'generator' | 'education'>('generator');
+  const [activeSubTab, setActiveSubTab] = useState<'generator' | 'education' | 'training'>('generator');
   const [selectedEduTemplate, setSelectedEduTemplate] = useState<string>('android_azkar');
   const [eduCopied, setEduCopied] = useState(false);
+
+  // -- AI TRAINING TAB STATES --
+  const [isTrainingAI, setIsTrainingAI] = useState(false);
+  const [trainingLogs, setTrainingLogs] = useState<string[]>([]);
+  const [trainingAccuracy, setTrainingAccuracy] = useState<number>(76.5);
+  const [trainingMemory, setTrainingMemory] = useState<number>(80.0);
+  const [trainingQuantum, setTrainingQuantum] = useState<number>(60.0);
+  const [copiedTrainingPrompt, setCopiedTrainingPrompt] = useState(false);
 
   // -- SIMULATOR STATE VARIABLES --
   const [simTab, setSimTab] = useState<'code' | 'simulator'>('simulator');
@@ -159,7 +171,7 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
     if (opt.enableLocalDb) {
       dbCode = `
     // الكيان التخزيني لقاعدة البيانات المحلية
-    قاعدة_بيانات.تهيئة("سجل_تطبيق_البيان")
+    قاعدة_بيانات.تهيئة("سجل_${opt.appName.replace(/\s+/g, '_')}")
     قاعدة_بيانات.تحديث_أو_إضافة("البيانات_الأساسية"، "المطور"، "${opt.developerName}")
     قاعدة_بيانات.تحديث_أو_إضافة("سجل_التقدم"، "التاريخ_اليومي"، "١")
     اطبع("💾 تم تسجيل قاعدة بيانات SQLite الموطنة وتشغيل النواة!")
@@ -181,6 +193,32 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
       hapticCode = `
     // استشعار الحركة والاهتزاز اللمسي لتأكيد نقرة المستخدم
     أندرويد.اهتزاز_لمسي("نقرة_خفيفة")
+    `;
+    }
+
+    let quantumCode = '';
+    if (opt.enableQuantum) {
+      quantumCode = `
+    // تهيئة مصفوفة التسريع والحساب التوازني الكمي
+    اطبع("⚛️ جاري حجز وتسجيل الكيوبيتات للمحاكي الكمي المدمج...")
+    عرف ك_سيادي = كمومية.كيوبيت()
+    عرف ك_طرفي = كمومية.كيوبيت()
+    كمومية.هادامارد(ك_سيادي)
+    كمومية.تشابك(ك_سيادي، ك_طرفي)
+    عرف قياس_السيادة = كمومية.قياس(ك_سيادي)
+    اطبع("📡 طفرة المعالجة السيادية الكمية: تراكب قمة الحالة (" + قياس_السيادة + ") بنجاح O(1)!")
+    `;
+    }
+
+    let neuralCode = '';
+    if (opt.enableNeuralNet) {
+      neuralCode = `
+    // تشييد وتدريب شبكة عصبية ذكية موطنة لنمذجة البيانات
+    اطبع("🧠 غرس مصفوفة الخلايا العصبية والتكيف الجيني التلقائي...")
+    عرف نموذج_التخمين = عصبية.إنشاء_نموذج("4,8,2")
+    عصبية.تدريب_تطوري(نموذج_التخمين، ١٠)
+    عرف التشخيص_التنبئي = عصبية.توقع(نموذج_التخمين، "٠.٨٥، ٠.١٢، ٠.٩٢، ٠.٤٤")
+    اطبع("🎯 القرار والتشخيص التنبؤي المستخلص: " + التشخيص_التنبئي)
     `;
     }
 
@@ -227,6 +265,8 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
     
     ${dbCode}
     ${voiceCode}
+    ${quantumCode}
+    ${neuralCode}
     
     ${isAndroid ? `
     // تكوين برامج الاندرويد لتوافق عتاد الجوالات بالكامل
@@ -336,6 +376,17 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
               >
                 <Layers size={12} />
                 <span>دليل وموسوعة لغة البيان البرمجية 📚</span>
+              </button>
+              <button
+                onClick={() => setActiveSubTab('training')}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                  activeSubTab === 'training'
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow font-extrabold'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Cpu size={12} />
+                <span>محرك تلقين وتدريب الذكاء 🧠</span>
               </button>
             </div>
 
@@ -542,6 +593,34 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
                     </div>
                     <div className={`w-9 h-5 rounded-full p-0.5 transition-all duration-200 ${options.enableHaptic ? 'bg-pink-500' : 'bg-slate-850'}`}>
                       <div className={`w-4 h-4 rounded-full bg-white transition-all transform duration-200 ${options.enableHaptic ? '-translate-x-4' : 'translate-x-0'}`} />
+                    </div>
+                  </div>
+
+                  {/* Quantum processing switcher */}
+                  <div 
+                    onClick={() => setOptions({...options, enableQuantum: !options.enableQuantum})}
+                    className="flex items-center justify-between cursor-pointer select-none border-t border-slate-900/65 pt-2.5"
+                  >
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-slate-200 block">المعالج والتسريع الكمومي</span>
+                      <span className="text-[10px] text-slate-500 block">تسريع حوسبة البيانات عبر محاكاة الكيوبيتس وتراكب الحالات بـ O(1)</span>
+                    </div>
+                    <div className={`w-9 h-5 rounded-full p-0.5 transition-all duration-200 ${options.enableQuantum ? 'bg-indigo-500' : 'bg-slate-850'}`}>
+                      <div className={`w-4 h-4 rounded-full bg-white transition-all transform duration-200 ${options.enableQuantum ? '-translate-x-4' : 'translate-x-0'}`} />
+                    </div>
+                  </div>
+
+                  {/* Neural Net processing switcher */}
+                  <div 
+                    onClick={() => setOptions({...options, enableNeuralNet: !options.enableNeuralNet})}
+                    className="flex items-center justify-between cursor-pointer select-none border-t border-slate-900/65 pt-2.5"
+                  >
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-slate-200 block">الشبكة العصبية والذكاء الموطن</span>
+                      <span className="text-[10px] text-slate-500 block">تغذية البرنامج ذاتياً بالتدريب الجيني التطوري لتوقع الأحوال</span>
+                    </div>
+                    <div className={`w-9 h-5 rounded-full p-0.5 transition-all duration-200 ${options.enableNeuralNet ? 'bg-purple-500' : 'bg-slate-850'}`}>
+                      <div className={`w-4 h-4 rounded-full bg-white transition-all transform duration-200 ${options.enableNeuralNet ? '-translate-x-4' : 'translate-x-0'}`} />
                     </div>
                   </div>
                 </div>
@@ -1205,7 +1284,7 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
               )}
             </div>
           </div>
-        ) : (
+        ) : activeSubTab === 'education' ? (
           /* ========================================================
              📙 GORGEOUS INTERACTIVE EDUCATION TAB (TRAINING MANUAL)
              ======================================================== */
@@ -1596,6 +1675,257 @@ export const BayanAppGenerator: React.FC<BayanAppGeneratorProps> = ({
                   <p className="text-[9.5px] text-slate-400 leading-relaxed">
                     تمت صياغة هذا الدليل والتدريب التفاعلي بنبض عام ٢٠٢٦ لتدريب طلاب العلم والمهندسين العرب على البرمجة السيادية دون الحاجة للاستعانة بلغات العجم.
                   </p>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        ) : (
+          /* ========================================================
+             🧠 AI LLM TRAINING & CO-PILOT PROMPTS TAB
+             ======================================================== */
+          <div className="flex-1 overflow-y-auto p-6 bg-[#03050b] space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300" dir="rtl">
+            
+            {/* Top Interactive Training Center Welcome */}
+            <div className="p-6 rounded-2xl border border-purple-500/20 bg-gradient-to-l from-purple-950/15 via-indigo-950/10 to-slate-950/40 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 text-right">
+              <div className="space-y-2 max-w-2xl">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-extrabold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-ping" />
+                  <span>محرك التلقين والتدريب السيادي (LLM Prompt & Spec Platform)</span>
+                </div>
+                <h3 className="text-base font-extrabold text-transparent bg-clip-text bg-gradient-to-l from-white via-slate-100 to-purple-400">
+                  منصة تدريب محركات الذكاء التوليدي على قواعد لغة البيان
+                </h3>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  هنا يمكنك استخراج وتعديل الكود المرجعي، التعليمات النحوية، والمحاكي العشري لتلقين وتدريب نماذج الذكاء الاصطناعي (مثل Gemini 1.5, GPT-4, Claude 3.5) لإنتاج تطبيقات خالية تماماً من الأخطاء النحوية للبيان ومحسنة 100% للعتاد.
+                </p>
+              </div>
+
+              <div className="shrink-0 flex items-center gap-2">
+                <div className="p-3 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl">
+                  <Cpu size={24} className="animate-pulse" />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              
+              {/* Right Column (lg:col-span-8): Copylink and instructions corpus */}
+              <div className="lg:col-span-8 space-y-4 text-right">
+                <div className="bg-slate-900/40 border border-slate-900 rounded-2xl p-5 space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-900 pb-3 gap-3 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1 rounded bg-purple-500/20 text-purple-400">
+                        <Terminal size={14} />
+                      </div>
+                      <h4 className="text-xs font-bold text-slate-200">التعليمات وصيغة التلقين المرجعية (System Prompt)</h4>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        const promptText = `تعليمات لغة البيان وتدريب محركات التوليد (Al-Bayan Language Specification):
+- لغة البيان لغة عربية برمجية سيادية خالية من تسريبات الذاكرة (0% Memory Leaks) وتعمل بـ O(1) عبر التوازي الكمومي والكيوبيت.
+- الكلمات المفتاحية: (عرف، مهمة، نهاية، صنف، يرث، بناء، هذا.، جديد، اطبع، استورد).
+- أدوات الشرط: (لو (أو اذا) (شرط)، وإلا لو (شرط)، وإلا).
+- الحلقات: (كرر (عدد) مرات، لكل [المتغير] في المجال(البداية، النهاية)).
+- الاستثناءات: (حاول، التقط (الخطأ)، نهاية).
+- مكونات النظام: (أندرويد.صناعة_تطبيق، أندرويد.لوح_الألوان، أندرويد.تنظيف_ذاكرة_تلقائي، كمومية.كيوبيت، كمومية.هادامارد، عصبية.إنشاء_نموذج).`;
+                        navigator.clipboard.writeText(promptText);
+                        setCopiedTrainingPrompt(true);
+                        setTimeout(() => setCopiedTrainingPrompt(false), 2000);
+                        playSimTone(550, 0.1, 'sine');
+                      }}
+                      className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-slate-850 hover:bg-slate-800 border border-slate-800 text-slate-350 transition-all flex items-center gap-1.5"
+                    >
+                      {copiedTrainingPrompt ? (
+                        <>
+                          <Check size={12} className="text-emerald-400" />
+                          <span className="text-emerald-400">تم النسخ لدفتر الحافظة!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={12} />
+                          <span>نسخ نص التلقين 📋</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <p className="text-[10px] text-slate-400 leading-relaxed text-right">
+                    انسخ هذا النص المرجعي والصقه في نافذة تعليمات النظام (System Instructions) لأي موديل ذكي، ليتعلم فوراً كيفية توليد الأكواد السليمة وتطوير البرامج بلغة البيان.
+                  </p>
+
+                  <div className="bg-[#03060f] p-4 rounded-xl border border-slate-950 font-mono text-[10px] text-slate-300 leading-relaxed space-y-2 select-all overflow-y-auto max-h-60" dir="ltr">
+                    <p className="text-purple-400 font-bold font-sans text-right"># نظام تعليمات تدريب الذكاء الاصطناعي (Gemini Agent Corpus):</p>
+                    <p className="text-slate-500">// Lexicon & Syntax Grammar Rules</p>
+                    <p>KEYWORD_LET = "عرف"</p>
+                    <p>KEYWORD_FUNC = "مهمة"</p>
+                    <p>KEYWORD_END = "نهاية"</p>
+                    <p>KEYWORD_IF = "لو"</p>
+                    <p>KEYWORD_FOR_RANGE = "لكل في المجال"</p>
+                    <p>KEYWORD_REPEAT = "كرر (عدد) مرات"</p>
+                    <p className="text-slate-500 mt-2">// Sovereign Embedded SDK Core Methods</p>
+                    <p>ANDROID_INIT = "أندرويد.صناعة_تطبيق(اسم_الحزمة, الاسم_الرسمي)"</p>
+                    <p>ANDROID_MEM_CLEAN = "أندرويد.تنظيف_ذاكرة_تلقائي()"</p>
+                    <p>QUANTUM_INIT_QUBIT = "كمومية.كيوبيت()"</p>
+                    <p>QUANTUM_HADAMARD_GATE = "كمومية.هادامارد(ك)"</p>
+                    <p>NEURAL_INIT_MODEL = "عصبية.إنشاء_نموذج(الطبقات)"</p>
+                    <p>NEURAL_TRAIN_EVOLVE = "عصبية.تدريب_تطوري(النموذج, الدورات)"</p>
+                  </div>
+                </div>
+
+                {/* Training Methodologies Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-right">
+                  <div className="p-4 rounded-xl border border-slate-900 bg-slate-900/10 space-y-2">
+                    <h5 className="text-[11px] font-bold text-slate-250">طريقة التلقين المباشر (Direct Prompting)</h5>
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      زود الموديل بوثيقة النحو ومثالين على الأقل (Few-Shot Generation) كأمثلة الروضة والتشابك الكمي المدمجة في هذا المستكشف، ليتعرف الموديل على علامات التعجب والربط والخصائص الزمردية.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-slate-900 bg-slate-900/10 space-y-2">
+                    <h5 className="text-[11px] font-bold text-slate-250">التدريب بالتعزيز الموطّن (RLHF Sandbox)</h5>
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      عند حدوث خطأ تركيبي في المترجم، خذ رسالة الخطأ وأعد تغذيتها للموديل مع الكود الصحيح، ليقوم بضبط معامل الهجاء النحوي تلقائياً وتلافي التعثر مستقبلاً.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Left Column (lg:col-span-4): Simulator Training Dashboard */}
+              <div className="lg:col-span-4 space-y-4 text-right">
+                
+                <div className="bg-slate-900/30 border border-slate-900 rounded-2xl p-4.5 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1 rounded bg-purple-500/20 text-purple-400">
+                      <Sparkles size={13} className="animate-pulse" />
+                    </div>
+                    <h4 className="text-xs font-extrabold text-slate-250">محاكي تدريب واختبار الموديل (RL Simulator)</h4>
+                  </div>
+
+                  <p className="text-[9.5px] text-slate-400 leading-relaxed">
+                    قم بتنشيط دورة تدريبية افتراضية واختبار استيعاب الموديل النحوي للغة البيان لعدة عهود (Epochs) لزيادة دقة امتثاله النحوي.
+                  </p>
+
+                  {/* Visual Gauges Progress Bars */}
+                  <div className="space-y-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-950">
+                    
+                    {/* Accuracy bar */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[9px] font-bold text-slate-350">
+                        <span>دقة امتثال قواعد لغة البيان</span>
+                        <span className="text-purple-400 font-mono">{trainingAccuracy.toFixed(1)}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-1000" 
+                          style={{ width: `${trainingAccuracy}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Memory safety gauge */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[9px] font-bold text-slate-350">
+                        <span>الامتثال لتطهير الذاكرة (0% Leaks)</span>
+                        <span className="text-emerald-400 font-mono">{trainingMemory.toFixed(1)}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-1000" 
+                          style={{ width: `${trainingMemory}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Quantum execution speed gauge */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[9px] font-bold text-slate-350">
+                        <span>تكامل التوازي الكمي O(1)</span>
+                        <span className="text-sky-400 font-mono">{trainingQuantum.toFixed(1)}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-sky-500 to-blue-500 transition-all duration-1000" 
+                          style={{ width: `${trainingQuantum}%` }}
+                        />
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Training Launch simulation button */}
+                  <button
+                    onClick={async () => {
+                      if (isTrainingAI) return;
+                      setIsTrainingAI(true);
+                      setTrainingLogs([]);
+                      playSimTone(380, 0.1, 'sawtooth');
+                      
+                      const trainSteps = [
+                        { text: "⏳ [تلقين] بدء تغذية الموديل العصبي بقواعد النحو ومعجم البيان...", duration: 600, acc: 81.2, mem: 84.5, q: 65.0 },
+                        { text: "🧬 [تنظيم] تشغيل دالة تدريب_تطوري(نموذج) لـ ١٠٠ جيل افتراضي مدمج...", duration: 700, acc: 88.4, mem: 91.0, q: 72.8 },
+                        { text: "⚛️ [ضبط كمومي] تجميع الكيوبيتس ومعادلة تداخل الحالات بالهادامارد...", duration: 800, acc: 94.6, mem: 96.5, q: 85.0 },
+                        { text: "🔒 [تطهير الذاكرة] ضبط الامتثال للتطهير الخلوي (أندرويد.تنظيف_ذاكرة_تلقائي)...", duration: 700, acc: 97.9, mem: 100.0, q: 92.5 },
+                        { text: "✨ [نجاح] استقرار أوزان التوليد بنسبة امتثال فائقة 99.8% جاهزة للربط!", duration: 600, acc: 99.8, mem: 100.0, q: 98.7 }
+                      ];
+
+                      for (let step of trainSteps) {
+                        setTrainingLogs(prev => [...prev, step.text]);
+                        setTrainingAccuracy(step.acc);
+                        setTrainingMemory(step.mem);
+                        setTrainingQuantum(step.q);
+                        playSimTone(step.acc * 6, 0.08, 'sine');
+                        await new Promise(resolve => setTimeout(resolve, step.duration));
+                      }
+                      
+                      setIsTrainingAI(false);
+                    }}
+                    disabled={isTrainingAI}
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold text-slate-950 transition-all flex items-center justify-center gap-1.5 ${
+                      isTrainingAI
+                        ? 'bg-slate-800 text-slate-500 border border-slate-750 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-400 via-indigo-400 to-pink-400 hover:shadow-lg hover:shadow-purple-500/10 hover:scale-[1.01] active:scale-[0.98]'
+                    }`}
+                  >
+                    {isTrainingAI ? (
+                      <>
+                        <RefreshCw size={13} className="animate-spin" />
+                        <span>جاري تدريب وتحسين الذكاء العصبي...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Cpu size={13} className="animate-pulse" />
+                        <span>إطلاق دورة تدريب افتراضية للبيان 🧠</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Simulator logs console panel */}
+                  <div className="flex flex-col bg-[#02040a] rounded-xl border border-slate-900/80 overflow-hidden min-h-[140px] text-right">
+                    <div className="bg-[#040711] p-2 border-b border-slate-900/60 flex items-center justify-between px-3">
+                      <span className="text-[8.5px] font-bold text-slate-400">سجل استجابة التلقين العصبي (Training Epoch Logs):</span>
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-ping" />
+                    </div>
+
+                    <div className="flex-1 p-3 overflow-y-auto font-mono text-[9px] text-slate-400 leading-relaxed space-y-1.5 h-32 select-none" dir="rtl">
+                      {trainingLogs.length === 0 ? (
+                        <div className="h-full flex items-center justify-center text-slate-700 italic">
+                          <span>[انقر على إطلاق دورة تدريب لمشاهدة الاستجابة...]</span>
+                        </div>
+                      ) : (
+                        trainingLogs.map((log, idx) => (
+                          <div key={idx} className="flex items-start gap-1.5 animate-in fade-in duration-100">
+                            <span className="text-purple-400">●</span>
+                            <span>{log}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
                 </div>
 
               </div>
