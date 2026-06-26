@@ -209,6 +209,7 @@ export const BayanCommunity: React.FC<BayanCommunityProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activePost, setActivePost] = useState<Post | null>(null);
+  const [mobileTab, setMobileTab] = useState<'feed' | 'sidebar'>('feed');
   
   // New Post Form state
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -684,10 +685,40 @@ export const BayanCommunity: React.FC<BayanCommunityProps> = ({
       </header>
 
       {/* Main Layout Area */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
+        
+        {/* Mobile Sub-Navigation Tabs */}
+        <div className="md:hidden flex bg-slate-900 border-b border-slate-800 p-1 shrink-0">
+          <button
+            onClick={() => {
+              playInteractionTone(440, 0.05, 'sine');
+              setMobileTab('feed');
+            }}
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all text-center ${
+              mobileTab === 'feed'
+                ? 'bg-purple-600 text-white shadow-md'
+                : 'text-slate-450 hover:text-slate-200'
+            }`}
+          >
+            💬 المنشورات والنقاشات
+          </button>
+          <button
+            onClick={() => {
+              playInteractionTone(440, 0.05, 'sine');
+              setMobileTab('sidebar');
+            }}
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all text-center ${
+              mobileTab === 'sidebar'
+                ? 'bg-purple-600 text-white shadow-md'
+                : 'text-slate-455 hover:text-slate-200'
+            }`}
+          >
+            🔍 التصنيفات والعضوية
+          </button>
+        </div>
         
         {/* Right Sidebar: Filtering, Search, and User status */}
-        <aside className="w-full md:w-80 bg-slate-900/40 border-l border-slate-850 p-4 flex flex-col gap-4 shrink-0 overflow-y-auto">
+        <aside className={`w-full md:w-80 bg-slate-900/40 border-l border-slate-850 p-4 flex flex-col gap-4 shrink-0 overflow-y-auto md:flex min-h-0 ${mobileTab === 'sidebar' ? 'flex flex-1' : 'hidden'}`}>
           
           {/* User Tier Alert / Status block */}
           <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3.5 relative overflow-hidden">
@@ -779,6 +810,7 @@ export const BayanCommunity: React.FC<BayanCommunityProps> = ({
                     setSelectedCategory(cat.id);
                     setActivePost(null);
                     setShowCreateForm(false);
+                    setMobileTab('feed');
                   }}
                   className={`w-full text-right py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-between border ${
                     isSelected
@@ -800,7 +832,7 @@ export const BayanCommunity: React.FC<BayanCommunityProps> = ({
         </aside>
 
         {/* Central Display: Post Feed, Form, or Detailed Post View */}
-        <main className="flex-1 bg-slate-950 flex flex-col overflow-hidden relative">
+        <main className={`flex-1 bg-slate-950 flex flex-col overflow-hidden relative min-h-0 ${mobileTab === 'feed' ? 'flex' : 'hidden md:flex'}`}>
           
           {/* Create Post Form */}
           {showCreateForm ? (

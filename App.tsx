@@ -397,6 +397,8 @@ function App() {
     });
   };
 
+  const isAnyModalOpen = isDocsOpen || isAcademyOpen || isCommunityOpen || isProjectModalOpen || isExtModalOpen || isTemplatesOpen || isOptimizerOpen || isAIToolkitOpen || isAppGeneratorOpen || isAuthOpen || isSidebarOpen;
+
   const handlePrintPDF = () => {
      window.print();
   };
@@ -404,106 +406,6 @@ function App() {
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-100 flex overflow-hidden">
       
-      <Documentation 
-        isOpen={isDocsOpen} 
-        onClose={() => setIsDocsOpen(false)}
-        onPrintPDF={handlePrintPDF} 
-      />
-
-      <BayanAcademy
-        isOpen={isAcademyOpen}
-        onClose={() => setIsAcademyOpen(false)}
-        onLoadExample={(exampleCode) => {
-          setCode(exampleCode);
-          setIsAcademyOpen(false);
-          setMode(CodeMode.EDITOR);
-        }}
-      />
-      
-      <ProjectModal 
-        isOpen={isProjectModalOpen}
-        onClose={() => setIsProjectModalOpen(false)}
-        projectStructure={projectStructure}
-        setProjectStructure={setProjectStructure}
-        onLoadFile={handleLoadFileFromProject}
-      />
-
-      <ExtensionsModal
-        isOpen={isExtModalOpen}
-        onClose={() => setIsExtModalOpen(false)}
-      />
-
-      <BayanToAndroidOptimizer
-        isOpen={isOptimizerOpen}
-        onClose={() => setIsOptimizerOpen(false)}
-        code={code}
-        onUpdateCode={setCode}
-      />
-
-      <BayanAIToolkit
-        isOpen={isAIToolkitOpen}
-        onClose={() => setIsAIToolkitOpen(false)}
-        code={code}
-        onUpdateCode={setCode}
-        onInstantRun={(newCode) => {
-          setCode(newCode);
-          setRightActiveTab('output');
-          setActiveMobileTab('output');
-          setTimeout(() => {
-            handleRun(false);
-          }, 100);
-        }}
-      />
-
-      <BayanAppGenerator
-        isOpen={isAppGeneratorOpen}
-        onClose={() => setIsAppGeneratorOpen(false)}
-        onApplyCode={setCode}
-        onInstantRun={(newCode) => {
-          setCode(newCode);
-          setRightActiveTab('output');
-          setActiveMobileTab('output');
-          setTimeout(() => {
-            handleRun(false);
-          }, 100);
-        }}
-        onSaveToFiles={handleSaveGeneratedApp}
-      />
-
-      <AndroidTemplatesLibrary 
-        isOpen={isTemplatesOpen}
-        onClose={() => setIsTemplatesOpen(false)}
-        onLoadTemplate={setCode}
-        onInstantRun={(newCode) => {
-          setCode(newCode);
-          setRightActiveTab('output');
-          setActiveMobileTab('output');
-          setTimeout(() => {
-            handleRun(false);
-          }, 100);
-        }}
-      />
-
-      <AuthModal 
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        userEmailFromMetadata="aliazzaa@gmail.com"
-        onAuthSuccess={(userData) => {
-          setUser(userData);
-          // Wait briefly for completion animation/sound, then modal can close or keep it updated
-        }}
-      />
-
-      <BayanCommunity
-        isOpen={isCommunityOpen}
-        onClose={() => setIsCommunityOpen(false)}
-        currentUser={user}
-        onOpenAuth={() => {
-          setIsCommunityOpen(false);
-          setIsAuthOpen(true);
-        }}
-      />
-
       <Sidebar 
         onLoadExample={setCode} 
         isOpen={isSidebarOpen} 
@@ -1156,7 +1058,7 @@ function App() {
         </div>
 
         {/* Floating Actions on Mobile (Run & Debug Overlay) */}
-        {!isDocsOpen && !isAcademyOpen && !isProjectModalOpen && !isExtModalOpen && !isTemplatesOpen && !isOptimizerOpen && !isAIToolkitOpen && !isAppGeneratorOpen && !isAuthOpen && !isSidebarOpen && activeMobileTab === 'editor' && (
+        {!isAnyModalOpen && activeMobileTab === 'editor' && (
           <div className="lg:hidden fixed bottom-20 left-4 z-50 flex flex-col gap-2.5 pointer-events-auto">
             {activeMobileTab === 'editor' && !isProcessing && (
               <button
@@ -1203,65 +1105,167 @@ function App() {
         )}
 
         {/* Mobile Navigation Tab Bar */}
-        <div className="lg:hidden h-16 border-t border-slate-800 bg-slate-900/90 backdrop-blur-md flex justify-around items-center px-2 shrink-0 z-30 select-none pb-safe">
-            <button
-              onClick={() => {
-                setActiveMobileTab('editor');
-                setMode(CodeMode.EDITOR);
-              }}
-              className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                activeMobileTab === 'editor' ? 'text-emerald-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
-              }`}
-              id="mobile-tab-editor"
-            >
-              <Code2 size={20} />
-              <span className="text-[10px]">المحرر</span>
-            </button>
+        {!isAnyModalOpen && (
+          <div className="lg:hidden h-16 border-t border-slate-800 bg-slate-900/90 backdrop-blur-md flex justify-around items-center px-2 shrink-0 z-30 select-none pb-safe">
+              <button
+                onClick={() => {
+                  setActiveMobileTab('editor');
+                  setMode(CodeMode.EDITOR);
+                }}
+                className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                  activeMobileTab === 'editor' ? 'text-emerald-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
+                }`}
+                id="mobile-tab-editor"
+              >
+                <Code2 size={20} />
+                <span className="text-[10px]">المحرر</span>
+              </button>
 
-            <button
-              onClick={() => {
-                setActiveMobileTab('transpiled');
-                setMode(CodeMode.TRANSPILED);
-              }}
-              className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                activeMobileTab === 'transpiled' ? 'text-blue-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
-              }`}
-              id="mobile-tab-transpiled"
-            >
-              <Globe size={20} />
-              <span className="text-[10px]">الترجمات</span>
-            </button>
+              <button
+                onClick={() => {
+                  setActiveMobileTab('transpiled');
+                  setMode(CodeMode.TRANSPILED);
+                }}
+                className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                  activeMobileTab === 'transpiled' ? 'text-blue-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
+                }`}
+                id="mobile-tab-transpiled"
+              >
+                <Globe size={20} />
+                <span className="text-[10px]">الترجمات</span>
+              </button>
 
-            <button
-              onClick={() => {
-                setActiveMobileTab('output');
-                setRightActiveTab('output');
-              }}
-              className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all relative ${
-                activeMobileTab === 'output' ? 'text-sky-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
-              }`}
-              id="mobile-tab-output"
-            >
-              <Terminal size={20} />
-              <span className="text-[10px]">المخرجات</span>
-            </button>
+              <button
+                onClick={() => {
+                  setActiveMobileTab('output');
+                  setRightActiveTab('output');
+                }}
+                className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all relative ${
+                  activeMobileTab === 'output' ? 'text-sky-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
+                }`}
+                id="mobile-tab-output"
+              >
+                <Terminal size={20} />
+                <span className="text-[10px]">المخرجات</span>
+              </button>
 
-            <button
-              onClick={() => {
-                setActiveMobileTab('ai');
-                setRightActiveTab('ai');
-              }}
-              className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                activeMobileTab === 'ai' ? 'text-purple-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
-              }`}
-              id="mobile-tab-ai"
-            >
-              <Sparkles size={20} className={activeMobileTab === 'ai' ? 'text-purple-400 animate-pulse' : 'text-slate-400'} />
-              <span className="text-[10px]">الرفيق والذكاء</span>
-            </button>
-        </div>
+              <button
+                onClick={() => {
+                  setActiveMobileTab('ai');
+                  setRightActiveTab('ai');
+                }}
+                className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                  activeMobileTab === 'ai' ? 'text-purple-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
+                }`}
+                id="mobile-tab-ai"
+              >
+                <Sparkles size={20} className={activeMobileTab === 'ai' ? 'text-purple-400 animate-pulse' : 'text-slate-400'} />
+                <span className="text-[10px]">الرفيق والذكاء</span>
+              </button>
+          </div>
+        )}
 
       </main>
+
+      {/* Full-Screen Overlay Modals (Rendered last to guarantee correct z-index on all browsers) */}
+      <Documentation 
+        isOpen={isDocsOpen} 
+        onClose={() => setIsDocsOpen(false)}
+        onPrintPDF={handlePrintPDF} 
+      />
+
+      <BayanAcademy
+        isOpen={isAcademyOpen}
+        onClose={() => setIsAcademyOpen(false)}
+        onLoadExample={(exampleCode) => {
+          setCode(exampleCode);
+          setIsAcademyOpen(false);
+          setMode(CodeMode.EDITOR);
+        }}
+      />
+      
+      <ProjectModal 
+        isOpen={isProjectModalOpen}
+        onClose={() => setIsProjectModalOpen(false)}
+        projectStructure={projectStructure}
+        setProjectStructure={setProjectStructure}
+        onLoadFile={handleLoadFileFromProject}
+      />
+
+      <ExtensionsModal
+        isOpen={isExtModalOpen}
+        onClose={() => setIsExtModalOpen(false)}
+      />
+
+      <BayanToAndroidOptimizer
+        isOpen={isOptimizerOpen}
+        onClose={() => setIsOptimizerOpen(false)}
+        code={code}
+        onUpdateCode={setCode}
+      />
+
+      <BayanAIToolkit
+        isOpen={isAIToolkitOpen}
+        onClose={() => setIsAIToolkitOpen(false)}
+        code={code}
+        onUpdateCode={setCode}
+        onInstantRun={(newCode) => {
+          setCode(newCode);
+          setRightActiveTab('output');
+          setActiveMobileTab('output');
+          setTimeout(() => {
+            handleRun(false);
+          }, 100);
+        }}
+      />
+
+      <BayanAppGenerator
+        isOpen={isAppGeneratorOpen}
+        onClose={() => setIsAppGeneratorOpen(false)}
+        onApplyCode={setCode}
+        onInstantRun={(newCode) => {
+          setCode(newCode);
+          setRightActiveTab('output');
+          setActiveMobileTab('output');
+          setTimeout(() => {
+            handleRun(false);
+          }, 100);
+        }}
+        onSaveToFiles={handleSaveGeneratedApp}
+      />
+
+      <AndroidTemplatesLibrary 
+        isOpen={isTemplatesOpen}
+        onClose={() => setIsTemplatesOpen(false)}
+        onLoadTemplate={setCode}
+        onInstantRun={(newCode) => {
+          setCode(newCode);
+          setRightActiveTab('output');
+          setActiveMobileTab('output');
+          setTimeout(() => {
+            handleRun(false);
+          }, 100);
+        }}
+      />
+
+      <AuthModal 
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        userEmailFromMetadata="aliazzaa@gmail.com"
+        onAuthSuccess={(userData) => {
+          setUser(userData);
+        }}
+      />
+
+      <BayanCommunity
+        isOpen={isCommunityOpen}
+        onClose={() => setIsCommunityOpen(false)}
+        currentUser={user}
+        onOpenAuth={() => {
+          setIsCommunityOpen(false);
+          setIsAuthOpen(true);
+        }}
+      />
     </div>
   );
 }
