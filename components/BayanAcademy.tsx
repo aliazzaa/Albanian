@@ -4,6 +4,8 @@ import {
   HelpCircle, Trophy, Sparkles, Printer, Code2, Search, Check, Brain, Cpu, Smartphone, Zap, Flame, RefreshCw,
   Play, Pause, RotateCcw, Binary, Sliders, ChevronLeft, ChevronRight, Activity, Terminal
 } from 'lucide-react';
+import { AlBayanCompiler } from '../services/compiler';
+import { runAlBayanCode } from '../services/runtime';
 
 interface BayanAcademyProps {
   isOpen: boolean;
@@ -1698,18 +1700,130 @@ const TRANSITION_PATHWAYS: TransitionPathway[] = [
   }
 ];
 
+// Smart parser to analyze Al-Bayan code for common syntax and logical errors
+const analyzeBayanCodeErrors = (code: string, errorString: string | null): {
+  title: string;
+  explanation: string;
+  recommendation: string;
+  incorrectSnippet?: string;
+  correctSnippet?: string;
+}[] => {
+  const suggestions: {
+    title: string;
+    explanation: string;
+    recommendation: string;
+    incorrectSnippet?: string;
+    correctSnippet?: string;
+  }[] = [];
+  
+  const normalizedCode = code.replace(/\s+/g, ' ');
+
+  // 1. Missing main function "مهمة رئيسية():"
+  if (!normalizedCode.includes('مهمة رئيسية():') && !normalizedCode.includes('مهمة رئيسية ()')) {
+    suggestions.push({
+      title: "⚠️ فقدان دالة المدخل الرئيسي للبرنامج (مهمة رئيسية)",
+      explanation: "تتطلب لغة البيان وجود دالة تسمى 'مهمة رئيسية():' لتكون بوابة العبور ونقطة الانطلاق لتنفيذ الكود بالمعالجات.",
+      recommendation: "أضف الدالة 'مهمة رئيسية():' في بداية الكود واختمها بالكلمة 'نهاية'.",
+      incorrectSnippet: `اطبع("أهلاً بالبيان")`,
+      correctSnippet: `مهمة رئيسية():\n    اطبع("أهلاً بالبيان")\nنهاية`
+    });
+  }
+
+  // 2. Unbalanced block closures (نهاية)
+  const blockStarts = (code.match(/\b(مهمة|لو|لكل|كرر|حاول|صنف)\b/g) || []).length;
+  const blockEnds = (code.match(/\bنهاية\b/g) || []).length;
+  if (blockStarts > blockEnds) {
+    suggestions.push({
+      title: "⚠️ نقص في إغلاق الكتل البرمجية (نهاية)",
+      explanation: "تبين وجود كتل برمجية (مهمة، لو، لكل، كرر، حاول...) لم يتم إغلاقها بشكل صحيح. تتطلب لغة البيان قفل كل كتلة بالكلمة 'نهاية' لمنع تداخل العمليات وتشتت المفسر.",
+      recommendation: "تأكد من كتابة الكلمة 'نهاية' في سطر مستقل لإغلاق كل دالة أو جملة شرطية أو تكرار.",
+      incorrectSnippet: `لو (س > ٥):\n    اطبع("كبير")`,
+      correctSnippet: `لو (س > ٥):\n    اطبع("كبير")\nنهاية`
+    });
+  } else if (blockEnds > blockStarts) {
+    suggestions.push({
+      title: "⚠️ وجود نهايات زائدة بالتعليمات",
+      explanation: "هناك كلمات 'نهاية' أكثر من عدد الكتل المفتوحة، مما يسبب تراجعاً خاطئاً بالذاكرة أو خطأ نحو عتادي.",
+      recommendation: "قم بمراجعة كودك وحذف الكلمات 'نهاية' الزائدة التي لا تقابل أي إعلان للكتل.",
+    });
+  }
+
+  // 3. Mixing punctuation or missing colons
+  const lines = code.split('\n');
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    if ((trimmed.startsWith('مهمة') || trimmed.startsWith('لو') || trimmed.startsWith('وإلا لو') || trimmed.startsWith('لكل') || trimmed.startsWith('كرر') || trimmed.startsWith('حاول') || trimmed.startsWith('صنف')) && !trimmed.endsWith(':')) {
+      suggestions.push({
+        title: `⚠️ غياب النقطتين الرأسيتين (:) في السطر ${idx + 1}`,
+        explanation: `يفتقر إعلان الكتلة في السطر [${trimmed}] إلى وجود النقطتين الرأسيتين (:) في نهايته. تستخدم لغة البيان النقطتين الرأسيتين لتمهيد فتح كتلة فرعية جديدة.`,
+        recommendation: "أضف الرمز (:) في نهاية السطر لفتح النطاق الفرعي للكتلة البرمجية.",
+        incorrectSnippet: trimmed,
+        correctSnippet: trimmed + " :"
+      });
+    }
+  });
+
+  // 4. Usage of English keywords
+  if (/\b(let|var|const|function|def|fn|if|else|elif|for|while|end|return)\b/i.test(code)) {
+    suggestions.push({
+      title: "⚠️ استخدام كلمات مفتاحية بلغة أجنبية (English Keywords)",
+      explanation: "لغة البيان عربية سيادية مستقلة، ولا تفهم الكلمات الأجنبية التقليدية مثل let, if, function داخل الأكواد.",
+      recommendation: "استبدل الكلمات الأجنبية بمرادفاتها العربية الفصيحة للبيان.",
+      incorrectSnippet: `let x = 5;\nif (x > 3) {\n    return x;\n}`,
+      correctSnippet: `عرف س = ٥\nلو (س > ٣):\n    اطبع(س)\nنهاية`
+    });
+  }
+
+  // 5. Check if memory cleaning was neglected
+  if (!code.includes('تنظيف_ذاكرة_تلقائي')) {
+    suggestions.push({
+      title: "💡 نصيحة أمان الذاكرة (0% تسريب)",
+      explanation: "يوصى دائماً بطلب العلاج الذاتي خلوياً عبر استدعاء 'أندرويد.تنظيف_ذاكرة_تلقائي()' في نهاية الدالة الرئيسية لتطهير خلايا المعالج العشوائية تماماً.",
+      recommendation: "أضف 'أندرويد.تنظيف_ذاكرة_تلقائي()' في ذيل الدالة الرئيسية لضمان الحفاظ على حجم حزمة أصغر من 385 كيلوبايت ومنع تسريب البيانات.",
+      correctSnippet: `    أندرويد.تنظيف_ذاكرة_تلقائي()\nنهاية`
+    });
+  }
+
+  // 6. Inspect runtime error string
+  if (errorString) {
+    if (errorString.toLowerCase().includes('not defined') || errorString.toLowerCase().includes('is not defined') || errorString.includes('معرف')) {
+      suggestions.push({
+        title: "⚠️ خطأ مرجعي عتادي (متغير غير معرف)",
+        explanation: "يرجى التحقق من تهيئة وتسمية المتغيرات؛ يبدو أنك استدعيت اسماً لم تقم بتسجيله مسبقاً بكلمة 'عرف' أو به خطأ إملائي بالرموز.",
+        recommendation: "أعلن عن المتغير أولاً باستخدام الكلمة 'عرف' قبل المرور بقيمته باللوحة.",
+      });
+    }
+  }
+
+  return suggestions;
+};
+
 export const BayanAcademy: React.FC<BayanAcademyProps> = ({ isOpen, onClose, onLoadExample }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedChapterId, setSelectedChapterId] = useState<string>('ch-basics');
+  const [mobileShowSidebar, setMobileShowSidebar] = useState<boolean>(true);
   const [selectedLessonId, setSelectedLessonId] = useState<string>('les-intro');
   const [activePathway, setActivePathway] = useState<string>('Python');
   const [studentName, setStudentName] = useState<string>('');
   
   // Navigation and simulation state variables
-  const [activeAcademyTab, setActiveAcademyTab] = useState<'lessons' | 'bridge' | 'machine'>('lessons');
+  const [activeAcademyTab, setActiveAcademyTab] = useState<'lessons' | 'bridge' | 'machine' | 'playground'>('lessons');
   const [activeSimId, setActiveSimId] = useState<string>('def-var');
   const [simStepIndex, setSimStepIndex] = useState<number>(0);
   const [isSimRunning, setIsSimRunning] = useState<boolean>(false);
+
+  // Playground state
+  const [playgroundCode, setPlaygroundCode] = useState<string>(
+    `مهمة رئيسية():\n    اطبع("🌍 أهلاً بك في مختبر البيان للتعلم الفوري!")\n    عرف السن = ٢٥\n    لو (السن >= ١٨):\n        اطبع("أنت مؤهل لخوض غمار البرمجة السيادية!")\n    وإلا:\n        اطبع("مرحباً بك في مهد المبتكرين الصغار.")\n    نهاية\n    أندرويد.تنظيف_ذاكرة_تلقائي()\nنهاية`
+  );
+  const [playgroundLogs, setPlaygroundLogs] = useState<string[]>([]);
+  const [playgroundError, setPlaygroundError] = useState<string | null>(null);
+  const [playgroundTranspiled, setPlaygroundTranspiled] = useState<any>(null);
+  const [playgroundAndroidApp, setPlaygroundAndroidApp] = useState<any>(null);
+  const [playgroundGraphics, setPlaygroundGraphics] = useState<any>(null);
+  const [isPlayingCodeRunning, setIsPlayingCodeRunning] = useState<boolean>(false);
+  const [selectedErrorGuide, setSelectedErrorGuide] = useState<string | null>(null);
+
   
   // Quiz states
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
@@ -1905,7 +2019,7 @@ export const BayanAcademy: React.FC<BayanAcademyProps> = ({ isOpen, onClose, onL
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
         
         {/* Left/Right Sidebar options - Navigation Tree & Index (indexed for quick lookup) */}
-        <aside className="w-full lg:w-80 bg-slate-900/95 border-l border-slate-800 flex flex-col shrink-0 overflow-y-auto">
+        <aside className={`w-full lg:w-80 bg-slate-900/95 border-l border-slate-800 flex-col shrink-0 overflow-y-auto lg:flex ${mobileShowSidebar ? 'flex' : 'hidden'}`}>
           
           {/* Certificate unlock tracker widgets */}
           <div className="p-4 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-b border-slate-850 space-y-3.5">
@@ -1977,6 +2091,7 @@ export const BayanAcademy: React.FC<BayanAcademyProps> = ({ isOpen, onClose, onL
                           onClick={() => {
                             setSelectedChapterId(ch.id);
                             setSelectedLessonId(lesson.id);
+                            setMobileShowSidebar(false);
                           }}
                           className={`w-full text-right p-2.5 rounded-lg text-xs transition-all flex items-start justify-between gap-2 border ${
                             isSelected 
@@ -2014,6 +2129,7 @@ export const BayanAcademy: React.FC<BayanAcademyProps> = ({ isOpen, onClose, onL
                     onClick={() => {
                       setActivePathway(p.lang);
                       setActiveAcademyTab('bridge');
+                      setMobileShowSidebar(false);
                     }}
                     className={`py-1.5 px-2 rounded-lg text-[10px] font-bold border transition-all text-center truncate ${
                       activePathway === p.lang
@@ -2031,11 +2147,21 @@ export const BayanAcademy: React.FC<BayanAcademyProps> = ({ isOpen, onClose, onL
         </aside>
 
         {/* Dynamic content Display Area */}
-        <main className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-y-auto">
+        <main className={`flex-1 flex-col min-w-0 bg-slate-950 overflow-y-auto lg:flex ${mobileShowSidebar ? 'hidden' : 'flex'}`}>
           
           {/* Main Top navigation bar for changing panels */}
           <div className="bg-slate-900/60 border-b border-slate-850 px-6 py-2 shrink-0 flex items-center justify-between gap-4">
             <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Back to Chapters list on mobile */}
+              <button
+                onClick={() => setMobileShowSidebar(true)}
+                className="lg:hidden flex items-center gap-1 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 hover:border-slate-600 rounded-lg py-1.5 px-3 text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
+                title="الرجوع لجدول المنهاج والدروس"
+              >
+                <ArrowRight size={13} className="ml-0.5" />
+                <span>المنهاج والدروس</span>
+              </button>
+
               <button
                 id="lesson-tab-button"
                 className={`py-2 px-4 rounded-lg text-xs font-bold transition-all border ${
@@ -2075,6 +2201,18 @@ export const BayanAcademy: React.FC<BayanAcademyProps> = ({ isOpen, onClose, onL
                 onClick={() => setActiveAcademyTab('bridge')}
               >
                 🌉 دليل التحول والعبور الخبير ({activePathway})
+              </button>
+
+              <button
+                id="playground-tab-button"
+                className={`py-2 px-4 rounded-lg text-xs font-bold transition-all border ${
+                  activeAcademyTab === 'playground'
+                    ? 'text-purple-400 bg-purple-950/20 border-purple-900/50'
+                    : 'text-slate-400 bg-transparent border-transparent hover:text-slate-200'
+                }`}
+                onClick={() => setActiveAcademyTab('playground')}
+              >
+                🧪 مختبر كتابة وتجريب الأكواد
               </button>
             </div>
             
@@ -2788,6 +2926,426 @@ export const BayanAcademy: React.FC<BayanAcademyProps> = ({ isOpen, onClose, onL
                 </div>
               );
             })()}
+
+            {/* SECTION 4: Interactive Code Playground DISPLAY */}
+            {activeAcademyTab === 'playground' && (
+              <div className="space-y-6 animate-fade-in text-slate-200 text-right">
+                {/* Banner Info */}
+                <div className="bg-gradient-to-br from-purple-950/15 via-slate-900 to-slate-900 border border-purple-900/30 p-6 rounded-2xl space-y-4 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 bg-purple-500/50 w-1.5 h-full" />
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-950/50 border border-purple-900/50 px-2.5 py-1 rounded-md flex items-center gap-1 font-sans">
+                        <Code2 size={12} className="animate-pulse" />
+                        مختبر ومحاكاة البيان المفتوحة
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 font-mono select-none">AL-BAYAN CODE LAB & SANDBOX</span>
+                  </div>
+
+                  <h2 className="text-xl font-black text-slate-100 flex items-center gap-2">
+                    مختبر كتابة الأكواد وتجريب التعليمات التفاعلية 🧪
+                  </h2>
+
+                  <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                    هذا محيط آمن وفارغ لكتابة واختبار أفكارك وخوارزمياتك بلغة البيان السيادية. يمكنك صياغة أي كود تشاء، تشغيله فوراً لمشاهدة النتائج العتادية باللوحة، ومتابعة مرشد تصحيح الأخطاء لمراجعة الأخطاء وتصحيحها خطوة بخطوة بالاستناد إلى القواعد الهندسية للآلة.
+                  </p>
+                </div>
+
+                {/* Playground Layout Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start font-sans">
+                  
+                  {/* Code Editor Panel (7 cols) */}
+                  <div className="lg:col-span-7 space-y-4">
+                    <div className="bg-slate-900/40 border border-slate-850 rounded-2xl p-4 space-y-3 relative">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                          <span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+                          <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                          <span className="text-[11px] font-bold text-slate-400 font-sans pr-2">ملف تجريبي: sandbox.byn</span>
+                        </div>
+                        
+                        {/* Quick Template Selector */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-slate-500">تحميل قالب:</span>
+                          <select
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === 'hello') {
+                                setPlaygroundCode(`مهمة رئيسية():\n    اطبع("👋 أهلاً بالعالم من مختبر البيان البرمجي!")\n    عرف الاسم = "أكاديمية البيان"\n    اطبع("مرحباً بك في عالم المعالجات النسيجية بـ: " + الاسم)\n    أندرويد.تنظيف_ذاكرة_تلقائي()\nنهاية`);
+                              } else if (val === 'conditional') {
+                                setPlaygroundCode(`مهمة رئيسية():\n    عرف درجة_الحرارة = ٣٥\n    اطبع("مقياس الحرارة الحالي: " + درجة_الحرارة)\n    لو (درجة_الحرارة > ٣٠):\n        اطبع("⚠️ تفعيل نظام التبريد الصديق للبيئة!")\n    وإلا لو (درجة_الحرارة < ١٥):\n        اطبع("🔥 تفعيل نظام التدفئة المستدام")\n    وإلا:\n        اطبع("✅ درجة الحرارة مستقرة تماماً.")\n    نهاية\n    أندرويد.تنظيف_ذاكرة_تلقائي()\nنهاية`);
+                              } else if (val === 'loop') {
+                                setPlaygroundCode(`مهمة رئيسية():\n    اطبع("🌀 محاكاة لعمل الحلقات الخطية وتوفير المعالج:")\n    لكل دور في المجال(١، ٦):\n        اطبع("نبضة تكرار رقم: " + دور)\n    نهاية\n    \n    اطبع("⏳ تكرار معدود بدون استخدام عدادات:")\n    كرر (٣) مرات:\n        اطبع("رائد في سماء البيان! 🛰️")\n    نهاية\n    أندرويد.تنظيف_ذاكرة_تلقائي()\nنهاية`);
+                              } else if (val === 'quantum') {
+                                setPlaygroundCode(`مهمة رئيسية():\n    اطبع("⚛️ محاكاة التشابك والتراكب الكمي:")\n    عرف ك١ = كمومية.كيوبيت()\n    عرف ك٢ = كمومية.كيوبيت()\n    \n    كمومية.هادامارد(ك١)\n    كمومية.تشابك(ك١، ك٢)\n    \n    عرف قياس١ = كمومية.قياس(ك١)\n    عرف قياس٢ = كمومية.قياس(ك٢)\n    \n    اطبع("الحالة الكمية المرصودة ك١: " + قياس١)\n    اطبع("الحالة الكمية المرصودة ك٢: " + قياس٢)\n    أندرويد.تنظيف_ذاكرة_تلقائي()\nنهاية`);
+                              } else if (val === 'neural') {
+                                setPlaygroundCode(`مهمة رئيسية():\n    اطبع("🧠 بناء شبكة عصبية تطورية ذكية:")\n    عرف نموذج = عصبية.إنشاء_نموذج("4,8,2")\n    عصبية.تدريب_تطوري(نموذج، ٥٠)\n    \n    عرف نتيجة = عصبية.توقع(نموذج، "٠.٧٥، ٠.١، ٠.٩، ٠.٣")\n    اطبع("القرار التشخيصي والتوقعي للشبكة: " + نتيجة)\n    أندرويد.تنظيف_ذاكرة_تلقائي()\nنهاية`);
+                              } else if (val === 'android') {
+                                setPlaygroundCode(`مهمة رئيسية():\n    اطبع("📱 تهيئة هيكل واجهة تطبيق أندرويد للهواتف:")\n    أندرويد.صناعة_تطبيق("com.bayan.playground", "مختبري الذكي")\n    أندرويد.لوح_الألوان("زمردي_فاخر")\n    أندرويد.إضافة_واجهة("الرئيسية")\n    \n    أندرويد.نص("عنوان"، "مرحباً بك في لوح البيان!")\n    أندرويد.مؤشر_تقدم("التقدم"، ٧٠)\n    أندرويد.زر("اضغط"، "انقر هنا للتفاعل")\n    أندرويد.تنظيف_ذاكرة_تلقائي()\nنهاية`);
+                              }
+                              e.target.value = '';
+                            }}
+                            className="bg-slate-950 border border-slate-800 text-slate-300 text-[10px] rounded px-1.5 py-0.5 focus:outline-none focus:border-purple-500 cursor-pointer"
+                          >
+                            <option value="">-- اختر قالباً سريعاً --</option>
+                            <option value="hello">👋 أهلاً بالعالم</option>
+                            <option value="conditional">🚦 الجمل الشرطية</option>
+                            <option value="loop">🌀 التكرار والدورانات</option>
+                            <option value="quantum">⚛️ محاكاة الكم superposition</option>
+                            <option value="neural">🧠 نموذج شبكة عصبية AI</option>
+                            <option value="android">📱 بناء واجهات أندرويد</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Actual Code Input */}
+                      <div className="relative font-mono">
+                        {/* Background Line Numbers */}
+                        <div className="absolute top-0 right-0 w-10 text-slate-600 text-[11px] text-center pr-1.5 select-none py-3 h-full border-l border-slate-800 pointer-events-none flex flex-col items-center">
+                          {playgroundCode.split('\n').map((_, index) => (
+                            <div key={index} className="leading-[19px]">{index + 1}</div>
+                          ))}
+                        </div>
+
+                        <textarea
+                          dir="ltr"
+                          value={playgroundCode}
+                          onChange={(e) => setPlaygroundCode(e.target.value)}
+                          className="w-full h-[320px] pl-3 pr-12 py-3 bg-slate-950/90 text-emerald-400 font-mono text-[11px] leading-[19px] rounded-xl border border-slate-850 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 resize-none overflow-y-auto block whitespace-pre"
+                          placeholder="اكتب كود البيان هنا..."
+                          style={{ fontFamily: "JetBrains Mono, Fira Code, monospace" }}
+                        />
+                      </div>
+
+                      {/* Run & Reset Controls */}
+                      <div className="flex items-center justify-between pt-1">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={async () => {
+                              if (isPlayingCodeRunning) return;
+                              setIsPlayingCodeRunning(true);
+                              setPlaygroundLogs([]);
+                              setPlaygroundError(null);
+                              setPlaygroundTranspiled(null);
+                              setPlaygroundAndroidApp(null);
+                              setPlaygroundGraphics(null);
+                              
+                              try {
+                                // 1. Compile Code
+                                const compiler = new AlBayanCompiler(playgroundCode);
+                                const transResult = compiler.compile(false);
+                                setPlaygroundTranspiled(transResult);
+
+                                // 2. Track Logs
+                                const customLogs: string[] = [];
+                                const runtimeCallbacks = {
+                                  onOutput: (log: string) => {
+                                    customLogs.push(log);
+                                  }
+                                };
+
+                                // Execute
+                                const execResult = await runAlBayanCode(
+                                  transResult.javascript,
+                                  [],
+                                  runtimeCallbacks
+                                );
+
+                                // Populate outputs
+                                const mergedLogs = [...execResult.output];
+                                setPlaygroundLogs(mergedLogs);
+                                
+                                if (execResult.error) {
+                                  setPlaygroundError(execResult.error);
+                                }
+                                if (execResult.generatedAndroidApp) {
+                                  setPlaygroundAndroidApp(execResult.generatedAndroidApp);
+                                }
+                                if (execResult.generatedGraphics) {
+                                  setPlaygroundGraphics(execResult.generatedGraphics);
+                                }
+
+                              } catch (err: any) {
+                                console.error(err);
+                                setPlaygroundError(err.message || "خطأ غير متوقع أثناء المعالجة البرمجية.");
+                              } finally {
+                                setIsPlayingCodeRunning(false);
+                              }
+                            }}
+                            disabled={isPlayingCodeRunning}
+                            className="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-bold py-2 px-5 rounded-xl transition-all shadow-md flex items-center gap-1.5 active:scale-95 cursor-pointer shadow-purple-950/20"
+                          >
+                            {isPlayingCodeRunning ? (
+                              <>
+                                <RefreshCw size={13} className="animate-spin" />
+                                <span>جاري تشغيل الكود...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Play size={13} fill="currentColor" />
+                                <span>تشغيل الكود البرمجي ⚡</span>
+                              </>
+                            )}
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setPlaygroundCode(`مهمة رئيسية():\n    اطبع("🌍 أهلاً بك في مختبر البيان للتعلم الفوري!")\n    عرف السن = ٢٥\n    لو (السن >= ١٨):\n        اطبع("أنت مؤهل لخوض غمار البرمجة السيادية!")\n    وإلا:\n        اطبع("مرحباً بك في مهد المبتكرين الصغار.")\n    نهاية\n    أندرويد.تنظيف_ذاكرة_تلقائي()\nنهاية`);
+                              setPlaygroundLogs([]);
+                              setPlaygroundError(null);
+                              setPlaygroundTranspiled(null);
+                              setPlaygroundAndroidApp(null);
+                              setPlaygroundGraphics(null);
+                            }}
+                            className="bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold py-2 px-3.5 rounded-xl border border-slate-800 hover:border-slate-700 transition-all active:scale-95 cursor-pointer"
+                          >
+                            مسح وإعادة ضبط 🔄
+                          </button>
+                        </div>
+
+                        <span className="text-[10px] text-slate-500 font-mono select-none">UTF-8 • BYN COMPILER V2</span>
+                      </div>
+                    </div>
+
+                    {/* Output Console Panel */}
+                    <div className="bg-slate-950 border border-slate-900 rounded-2xl overflow-hidden shadow-xl">
+                      <div className="bg-slate-900/40 border-b border-slate-850 px-4 py-2.5 flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                          <Terminal size={12} className="text-emerald-400" />
+                          شاشة المخرجات واللوحة البرمجية للمترجم
+                        </span>
+                        <span className="text-[9px] bg-slate-950 px-2 py-0.5 border border-slate-800 text-slate-500 rounded font-mono select-none">CONSOLE</span>
+                      </div>
+
+                      <div className="p-4 min-h-[140px] max-h-[220px] overflow-y-auto font-mono text-[11px] space-y-2 text-left" dir="ltr">
+                        {playgroundLogs.length === 0 && !playgroundError && !isPlayingCodeRunning && (
+                          <div className="text-slate-500 italic text-center py-8 font-sans">
+                            لا يوجد مخرجات لعرضها. اكتب كوداً ثم اضغط على "تشغيل الكود ⚡" لترى التفسير العتادي واللوغاريتمي هنا.
+                          </div>
+                        )}
+
+                        {isPlayingCodeRunning && (
+                          <div className="text-purple-400 animate-pulse text-center py-8 font-sans">
+                            ⚙️ جاري قراءة الكود والمطابقة اللسانية وعمل المترجم...
+                          </div>
+                        )}
+
+                        {playgroundLogs.map((log, lIdx) => (
+                          <div key={lIdx} className="text-emerald-400 font-mono leading-relaxed select-text">
+                            <span className="text-slate-500 select-none mr-1.5">»</span>
+                            {log}
+                          </div>
+                        ))}
+
+                        {playgroundError && (
+                          <div className="bg-red-950/20 border border-red-900/40 p-3 rounded-lg text-red-400 font-mono text-[11.5px] leading-relaxed whitespace-pre-wrap mt-2">
+                            <span className="font-bold block mb-1">❌ خطأ في تشغيل الكود (Runtime/Syntax Error):</span>
+                            {playgroundError}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Visual Outputs inside Playground (Android widgets simulator / graphics charts) */}
+                    {(playgroundAndroidApp || (playgroundGraphics && playgroundGraphics.canvasActive)) && (
+                      <div className="bg-slate-900/30 border border-slate-850 p-5 rounded-2xl space-y-4">
+                        <h4 className="text-xs font-bold text-slate-400 border-b border-slate-800 pb-2.5 flex items-center gap-1.5">
+                          <Activity size={13} className="text-purple-400" />
+                          المحاكاة البصرية الفورية للواجهات والرسوم
+                        </h4>
+
+                        {playgroundAndroidApp && (
+                          <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
+                            <div className="flex items-center justify-between border-b border-slate-900 pb-2">
+                              <div>
+                                <h5 className="text-[11px] font-black text-slate-200">📱 واجهة تطبيق الأندرويد المولدة تلقائياً</h5>
+                                <span className="text-[9px] text-slate-500">{playgroundAndroidApp.appName} • {playgroundAndroidApp.packageName}</span>
+                              </div>
+                              <span className="text-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-1.5 py-0.5 rounded-full font-medium font-sans">
+                                حجم الحزمة: {playgroundAndroidApp.apkSize}
+                              </span>
+                            </div>
+
+                            {/* Simulated Screens */}
+                            {playgroundAndroidApp.screens && playgroundAndroidApp.screens.map((screen: any, sIdx: number) => (
+                              <div key={sIdx} className="bg-slate-900 p-4 rounded-lg border border-slate-850 space-y-3">
+                                <div className="text-[9px] text-slate-400 font-bold">الشاشة: {screen.name}</div>
+                                <div className="space-y-2">
+                                  {screen.widgets && screen.widgets.map((widget: any) => {
+                                    if (widget.type === 'text') {
+                                      return <div key={widget.id} className="text-xs text-slate-200 py-1">{widget.label}</div>;
+                                    }
+                                    if (widget.type === 'button') {
+                                      return (
+                                        <button key={widget.id} className="w-full py-1.5 px-3 rounded-lg bg-emerald-600 text-white text-[10px] font-bold border border-emerald-500 hover:bg-emerald-500 transition-all select-none">
+                                          {widget.label}
+                                        </button>
+                                      );
+                                    }
+                                    if (widget.type === 'progress') {
+                                      return (
+                                        <div key={widget.id} className="space-y-1">
+                                          <div className="flex justify-between text-[9px] text-slate-400">
+                                            <span>{widget.label}</span>
+                                            <span>{widget.value}%</span>
+                                          </div>
+                                          <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-850">
+                                            <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${widget.value || 0}%` }}></div>
+                                          </div>
+                                        </div>
+                                      );
+                                    }
+                                    return null;
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {playgroundGraphics && playgroundGraphics.chart && (
+                          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                            <h5 className="text-[10px] font-bold text-slate-300">📊 مخطط بياني مولد تلقائياً: {playgroundGraphics.chart.title}</h5>
+                            <div className="flex items-end justify-center gap-2 h-24 pt-4 px-2" dir="ltr">
+                              {playgroundGraphics.chart.data.map((val: number, idx: number) => (
+                                <div key={idx} className="flex flex-col items-center flex-1 max-w-[40px] space-y-1.5">
+                                  <span className="text-[8px] text-slate-400 font-mono">{val}</span>
+                                  <div className="w-full bg-gradient-to-t from-purple-600 to-indigo-500 rounded-t-sm transition-all duration-500" style={{ height: `${Math.min(100, Math.max(10, val))}%` }}></div>
+                                  <span className="text-[8px] text-slate-500 font-sans truncate w-full text-center" title={playgroundGraphics.chart.labels[idx]}>{playgroundGraphics.chart.labels[idx]}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Error Corrector & Guidance Panel (5 cols) */}
+                  <div className="lg:col-span-5 space-y-5">
+                    
+                    {/* Real-time Code Advisor */}
+                    <div className="bg-slate-900/40 border border-slate-850 p-5 rounded-2xl space-y-4">
+                      <h3 className="text-xs font-bold text-slate-400 tracking-wider flex items-center gap-1.5 border-b border-slate-800 pb-3">
+                        <Brain size={14} className="text-purple-400" />
+                        مرشد المترجم الذكي وتصحيح الأخطاء
+                      </h3>
+
+                      {/* Render suggestions list based on analysis of current code */}
+                      {(() => {
+                        const suggestions = analyzeBayanCodeErrors(playgroundCode, playgroundError);
+                        if (suggestions.length === 0) {
+                          return (
+                            <div className="bg-emerald-950/10 border border-emerald-900/30 p-4 rounded-xl space-y-2 text-center text-emerald-400">
+                              <CheckCircle size={20} className="mx-auto text-emerald-400 block" />
+                              <p className="text-[11px] font-bold">بنية الأكواد تبدو ممتازة وخالية من الأخطاء النحوية الشائعة! 🎉</p>
+                              <p className="text-[10px] text-slate-400 leading-normal">كودك متوافق بنسبة 100% مع قواعد لغة البيان ومعايير تصفير الذاكرة.</p>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div className="space-y-3">
+                            <div className="text-[10px] text-slate-500 font-bold mb-1">تنبيهات وإرشادات لتحسين كودك ({suggestions.length}):</div>
+                            {suggestions.map((s, sIdx) => (
+                              <div key={sIdx} className="bg-slate-950/60 border border-slate-850/60 hover:border-purple-500/20 p-3 rounded-xl space-y-2.5 transition-all text-right animate-fade-in">
+                                <div className="flex items-start gap-2">
+                                  <AlertCircle size={14} className="text-amber-400 shrink-0 mt-0.5 animate-pulse" />
+                                  <div>
+                                    <h5 className="text-[11px] font-extrabold text-slate-200">{s.title}</h5>
+                                    <p className="text-[10px] text-slate-400 leading-relaxed mt-1">{s.explanation}</p>
+                                  </div>
+                                </div>
+
+                                <div className="bg-slate-900/40 p-2.5 rounded-lg space-y-2 border border-slate-850/30">
+                                  <span className="text-[9px] text-slate-400 font-bold block">💡 التوجيه للتصحيح:</span>
+                                  <p className="text-[10px] text-purple-300 leading-normal">{s.recommendation}</p>
+                                  
+                                  {s.incorrectSnippet && s.correctSnippet && (
+                                    <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[9px] leading-relaxed text-left" dir="ltr">
+                                      <div className="space-y-1">
+                                        <span className="text-[8px] text-red-400 font-bold font-sans block text-right">خطأ ❌</span>
+                                        <pre className="bg-red-950/10 border border-red-900/20 rounded p-1.5 overflow-x-auto text-red-300 font-sans text-[9px] max-h-[80px]">
+                                          <code>{s.incorrectSnippet}</code>
+                                        </pre>
+                                      </div>
+                                      <div className="space-y-1">
+                                        <span className="text-[8px] text-emerald-400 font-bold font-sans block text-right">صحيح ✅</span>
+                                        <pre className="bg-emerald-950/10 border border-emerald-900/20 rounded p-1.5 overflow-x-auto text-emerald-300 font-sans text-[9px] max-h-[80px]">
+                                          <code>{s.correctSnippet}</code>
+                                        </pre>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    {/* Common Bugs Reference Table */}
+                    <div className="bg-slate-900/40 border border-slate-850 p-5 rounded-2xl space-y-4">
+                      <h3 className="text-xs font-bold text-slate-400 tracking-wider flex items-center gap-1.5 border-b border-slate-800 pb-3">
+                        <BookOpen size={14} className="text-yellow-400" />
+                        دليل الأخطاء البرمجية الشائعة وحلولها
+                      </h3>
+                      
+                      <p className="text-[10px] text-slate-400 leading-relaxed">
+                        استعرض هذه القائمة لحل أكثر الإشكاليات النحوية تكراراً لدى متعلمي لغة البيان البرمجية:
+                      </p>
+
+                      <div className="space-y-2">
+                        {[
+                          {
+                            bug: "نسيان الرمز (:) في الشروط أو الدوال",
+                            desc: "يؤدي ذلك إلى عجز مفسر الكود عن التنبؤ ببداية كتلة فرعية.",
+                            fix: "ألحق (:) دائماً بنهاية السطر الذي تبدأ به الدالة أو الجملة الشرطية."
+                          },
+                          {
+                            bug: "استخدام الأقواس المجعدة { } للإغلاق",
+                            desc: "تعتمد البيان بالكامل على الكلمة 'نهاية' لإغلاق الكتل البرمجية.",
+                            fix: "استبدل الأقواس بكلمة 'نهاية' في سطر مستقل لإتمام بناء الأوامر."
+                          },
+                          {
+                            bug: "استخدام Let أو Const لتهيئة المتغير",
+                            desc: "هذه الرموز تخص اللغات الأجنبية ولا تدعم النطاق الخلوي الآمن للبيان.",
+                            fix: "استخدم دائماً الكلمة 'عرف' لإعلان المتغيرات (مثال: عرف السن = ٢٥)."
+                          },
+                          {
+                            bug: "استخدام Print بدلاً من اطبع",
+                            desc: "مفسر الأنوية البرمجية للبيان يتطلب كتابة دالة الإخراج بـ 'اطبع'.",
+                            fix: "استخدم الكلمة العربية 'اطبع' مع أقواس لإخراج أي نصوص أو معلومات."
+                          }
+                        ].map((guide, gIdx) => (
+                          <div
+                            key={gIdx}
+                            className="bg-slate-950/40 hover:bg-slate-900/30 p-3 rounded-xl border border-slate-900/80 hover:border-slate-850 transition-all text-right space-y-1 cursor-pointer"
+                            onClick={() => setSelectedErrorGuide(selectedErrorGuide === guide.bug ? null : guide.bug)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-slate-200">❌ {guide.bug}</span>
+                              <span className="text-[8px] text-purple-400 font-bold bg-purple-950/20 border border-purple-900/40 px-1.5 py-0.2 rounded select-none">تفاصيل</span>
+                            </div>
+                            {selectedErrorGuide === guide.bug && (
+                              <div className="pt-2 text-[10px] text-slate-400 space-y-1.5 border-t border-slate-900/40 mt-1 animate-fade-in">
+                                <p className="leading-relaxed"><strong className="text-amber-500">السبب الحوسبي:</strong> {guide.desc}</p>
+                                <p className="leading-relaxed"><strong className="text-emerald-400">طريقة العلاج:</strong> {guide.fix}</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>

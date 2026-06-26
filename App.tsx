@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Code2, FileJson, Menu, Layers, FileCode, FileText, Bug, Puzzle, Globe, Square, Sparkles, Cpu, Brain, ChevronDown, Terminal, Wand2, AlertTriangle, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { Play, Code2, FileJson, Menu, Layers, FileCode, FileText, Bug, Puzzle, Globe, Square, Sparkles, Cpu, Brain, ChevronDown, Terminal, Wand2, AlertTriangle, AlertCircle, CheckCircle, Info, MessageSquare } from 'lucide-react';
 import CodeEditor from './components/CodeEditor';
 import Output from './components/Output';
 import AICopilot from './components/AICopilot';
@@ -19,6 +19,7 @@ import { BayanWasmVisualizer } from './components/BayanWasmVisualizer';
 import { BayanRoadmapWithArchitecture } from './components/BayanRoadmapWithArchitecture';
 import { BayanInteractiveReport } from './components/BayanInteractiveReport';
 import { BayanAcademy } from './components/BayanAcademy';
+import { BayanCommunity } from './components/BayanCommunity';
 import { AlBayanCompiler } from './services/compiler';
 import { AlBayanLexer, AlBayanParser, AlBayanSemanticAnalyzer } from './services/parser';
 import { AlBayanBytecodeCompiler, AlBayanVMInterpreter } from './services/vm';
@@ -38,6 +39,7 @@ function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string; tier: string } | null>(null);
   const [isAcademyOpen, setIsAcademyOpen] = useState(false);
+  const [isCommunityOpen, setIsCommunityOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isExtModalOpen, setIsExtModalOpen] = useState(false);
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
@@ -343,6 +345,58 @@ function App() {
       setMode(CodeMode.EDITOR);
   };
 
+  const handleSaveGeneratedApp = (appName: string, generatedCode: string) => {
+    const fileName = `${appName.trim() || 'تطبيق_مولد'}.byn`;
+    
+    setProjectStructure(prev => {
+      const folderName = 'التطبيقات المولدة';
+      let folderIndex = prev.findIndex(item => item.type === 'folder' && item.name === folderName);
+      
+      let updated = [...prev];
+      let targetFolder: FileSystemItem;
+      
+      if (folderIndex === -1) {
+        // Create the folder if it doesn't exist
+        targetFolder = {
+          id: `gen-folder-${Date.now()}`,
+          name: folderName,
+          type: 'folder',
+          isOpen: true,
+          children: []
+        };
+        updated.push(targetFolder);
+        folderIndex = updated.length - 1;
+      } else {
+        // Create a copy of the folder to modify it safely
+        targetFolder = { 
+          ...updated[folderIndex], 
+          children: [...(updated[folderIndex].children || [])],
+          isOpen: true 
+        };
+        updated[folderIndex] = targetFolder;
+      }
+      
+      // Check if the file already exists in that folder to avoid duplicates (overwrite or rename)
+      const existingFileIndex = targetFolder.children!.findIndex(f => f.name === fileName);
+      const newFile: FileSystemItem = {
+        id: `gen-file-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        name: fileName,
+        type: 'file',
+        content: generatedCode
+      };
+      
+      if (existingFileIndex !== -1) {
+        // Overwrite existing file
+        targetFolder.children![existingFileIndex] = newFile;
+      } else {
+        // Append new file
+        targetFolder.children!.push(newFile);
+      }
+      
+      return updated;
+    });
+  };
+
   const handlePrintPDF = () => {
      window.print();
   };
@@ -413,6 +467,7 @@ function App() {
             handleRun(false);
           }, 100);
         }}
+        onSaveToFiles={handleSaveGeneratedApp}
       />
 
       <AndroidTemplatesLibrary 
@@ -439,6 +494,16 @@ function App() {
         }}
       />
 
+      <BayanCommunity
+        isOpen={isCommunityOpen}
+        onClose={() => setIsCommunityOpen(false)}
+        currentUser={user}
+        onOpenAuth={() => {
+          setIsCommunityOpen(false);
+          setIsAuthOpen(true);
+        }}
+      />
+
       <Sidebar 
         onLoadExample={setCode} 
         isOpen={isSidebarOpen} 
@@ -449,6 +514,7 @@ function App() {
         onOpenTemplates={() => setIsTemplatesOpen(true)}
         onOpenAcademy={() => setIsAcademyOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenCommunity={() => setIsCommunityOpen(true)}
         currentUser={user}
       />
 
@@ -647,6 +713,18 @@ function App() {
                     >
                       <span>{user ? `الملف: ${user.name} 🏅` : "الاشتراك بالمنصة 🌟"}</span>
                       <Sparkles size={15} className="text-purple-400 animate-pulse" />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsCommunityOpen(true);
+                        setIsToolsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs text-purple-300 hover:bg-purple-500/10 transition-colors text-right font-bold border-b border-slate-800 pb-2"
+                      id="mobile-tool-community"
+                    >
+                      <span>مجتمع المشتركين 💬</span>
+                      <MessageSquare size={14} className="text-purple-400" />
                     </button>
 
                     <button
@@ -1078,49 +1156,51 @@ function App() {
         </div>
 
         {/* Floating Actions on Mobile (Run & Debug Overlay) */}
-        <div className="lg:hidden fixed bottom-20 left-4 z-50 flex flex-col gap-2.5 pointer-events-auto">
-          {activeMobileTab === 'editor' && !isProcessing && (
+        {!isDocsOpen && !isAcademyOpen && !isProjectModalOpen && !isExtModalOpen && !isTemplatesOpen && !isOptimizerOpen && !isAIToolkitOpen && !isAppGeneratorOpen && !isAuthOpen && !isSidebarOpen && (
+          <div className="lg:hidden fixed bottom-20 left-4 z-50 flex flex-col gap-2.5 pointer-events-auto">
+            {activeMobileTab === 'editor' && !isProcessing && (
+              <button
+                onClick={() => {
+                  handleRun(true);
+                  setActiveMobileTab('output');
+                  setRightActiveTab('output');
+                }}
+                className="w-11 h-11 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-orange-400 shadow-xl active:scale-95 hover:bg-slate-800 transition-all font-bold cursor-pointer"
+                title="تصحيح برمجيات البيان"
+                id="mobile-floating-debug-btn"
+              >
+                <Bug size={18} />
+              </button>
+            )}
+
+            {/* Main Play / Stop Button on Mobile */}
             <button
               onClick={() => {
-                handleRun(true);
-                setActiveMobileTab('output');
-                setRightActiveTab('output');
+                if (isProcessing || debugMode) {
+                  handleStop();
+                } else {
+                  handleRun(false);
+                  setActiveMobileTab('output');
+                  setRightActiveTab('output');
+                }
               }}
-              className="w-11 h-11 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-orange-400 shadow-xl active:scale-95 hover:bg-slate-800 transition-all font-bold cursor-pointer"
-              title="تصحيح برمجيات البيان"
-              id="mobile-floating-debug-btn"
+              className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl active:scale-95 hover:opacity-90 transition-all cursor-pointer ${
+                isProcessing || debugMode
+                  ? 'bg-rose-600 text-white animate-pulse shadow-rose-900/50'
+                  : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-emerald-950/40'
+              }`}
+              id="mobile-floating-run-btn"
             >
-              <Bug size={18} />
+              {isProcessing && !debugMode ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : isProcessing || debugMode ? (
+                <Square size={20} fill="currentColor" />
+              ) : (
+                <Play size={20} fill="currentColor" className="ml-1" />
+              )}
             </button>
-          )}
-
-          {/* Main Play / Stop Button on Mobile */}
-          <button
-            onClick={() => {
-              if (isProcessing || debugMode) {
-                handleStop();
-              } else {
-                handleRun(false);
-                setActiveMobileTab('output');
-                setRightActiveTab('output');
-              }
-            }}
-            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl active:scale-95 hover:opacity-90 transition-all cursor-pointer ${
-              isProcessing || debugMode
-                ? 'bg-rose-600 text-white animate-pulse shadow-rose-900/50'
-                : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-emerald-950/40'
-            }`}
-            id="mobile-floating-run-btn"
-          >
-            {isProcessing && !debugMode ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            ) : isProcessing || debugMode ? (
-              <Square size={20} fill="currentColor" />
-            ) : (
-              <Play size={20} fill="currentColor" className="ml-1" />
-            )}
-          </button>
-        </div>
+          </div>
+        )}
 
         {/* Mobile Navigation Tab Bar */}
         <div className="lg:hidden h-16 border-t border-slate-800 bg-slate-900/90 backdrop-blur-md flex justify-around items-center px-2 shrink-0 z-30 select-none pb-safe">

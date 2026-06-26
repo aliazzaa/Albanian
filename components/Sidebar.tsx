@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Layers, Zap, Book, Download, FolderKanban, Smartphone, GraduationCap, User, Sparkles } from 'lucide-react';
+import { BookOpen, Layers, Zap, Book, Download, FolderKanban, Smartphone, GraduationCap, User, Sparkles, MessageSquare } from 'lucide-react';
 import { EXAMPLES, SYNTAX_MAP } from '../constants';
 
 interface SidebarProps {
@@ -13,6 +13,7 @@ interface SidebarProps {
   onOpenTemplates: () => void;
   onOpenAcademy: () => void;
   onOpenAuth?: () => void;
+  onOpenCommunity?: () => void;
   currentUser?: { name: string; email: string; tier: string } | null;
 }
 
@@ -26,6 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onOpenTemplates,
   onOpenAcademy,
   onOpenAuth,
+  onOpenCommunity,
   currentUser
 }) => {
 
@@ -156,6 +158,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                 >
                   <Smartphone size={20} className="text-teal-400" />
                   <span className="font-bold">قوالب الأندرويد 🤖</span>
+                </button>
+
+                <button 
+                  onClick={() => {
+                    if (onOpenCommunity) onOpenCommunity();
+                    if (window.innerWidth < 1024) toggle();
+                  }}
+                  className="w-full flex items-center gap-2 bg-gradient-to-l from-purple-950/30 to-indigo-950/30 hover:from-purple-900/40 hover:to-indigo-900/40 text-purple-300 border border-purple-900/50 p-3 rounded-lg transition-all shadow-md shadow-purple-950/15"
+                  title="مجتمع المشتركين الرقمي لمناقشة أكواد البيان وتبادل الخبرات"
+                >
+                  <MessageSquare size={20} className="text-purple-400 animate-pulse" />
+                  <span className="font-black">مجتمع المشتركين 💬</span>
                 </button>
 
                 <button 
