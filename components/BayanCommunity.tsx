@@ -38,6 +38,8 @@ interface BayanCommunityProps {
   onClose: () => void;
   currentUser?: { name: string; email: string; tier: string } | null;
   onOpenAuth?: () => void;
+  onOpenAcademy?: () => void;
+  onOpenDocs?: () => void;
 }
 
 const CATEGORIES = [
@@ -203,7 +205,9 @@ export const BayanCommunity: React.FC<BayanCommunityProps> = ({
   isOpen, 
   onClose, 
   currentUser,
-  onOpenAuth 
+  onOpenAuth,
+  onOpenAcademy,
+  onOpenDocs
 }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -658,7 +662,33 @@ export const BayanCommunity: React.FC<BayanCommunityProps> = ({
         </div>
 
         {/* Action Controls & Close */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {onOpenAcademy && (
+            <button
+              onClick={() => {
+                playInteractionTone(440, 0.05, 'sine');
+                onOpenAcademy();
+              }}
+              className="hidden lg:flex items-center gap-1 text-xs py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white transition-all border border-slate-700/60 font-bold"
+              title="الذهاب لأكاديمية البيان للتعلم المنهجي"
+            >
+              <span>أكاديمية البيان 🎓</span>
+            </button>
+          )}
+
+          {onOpenDocs && (
+            <button
+              onClick={() => {
+                playInteractionTone(440, 0.05, 'sine');
+                onOpenDocs();
+              }}
+              className="hidden lg:flex items-center gap-1 text-xs py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white transition-all border border-slate-700/60 font-bold"
+              title="الذهاب للتوثيق والمستندات"
+            >
+              <span>توثيق المنصة 📚</span>
+            </button>
+          )}
+
           {currentUser && currentUser.tier === 'sovereign' && (
             <button
               onClick={() => {
@@ -675,7 +705,7 @@ export const BayanCommunity: React.FC<BayanCommunityProps> = ({
 
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-white flex items-center justify-center transition-colors border border-slate-700/60"
+            className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-white flex items-center justify-center transition-colors border border-slate-700/60 shrink-0"
             title="إغلاق المجتمع"
             id="community-close-btn"
           >
@@ -827,6 +857,113 @@ export const BayanCommunity: React.FC<BayanCommunityProps> = ({
                 </button>
               );
             })}
+          </div>
+
+          {/* Subscribed Members Section */}
+          <div className="border-t border-slate-850 pt-4 space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <User size={11} className="text-purple-400" />
+                <span>المشتركون النشطون</span>
+              </span>
+              <span className="flex items-center gap-1 text-[9px] text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>{currentUser ? 6 : 5} متصل</span>
+              </span>
+            </div>
+
+            <div className="space-y-1.5 max-h-[180px] overflow-y-auto pr-0.5 custom-scrollbar">
+              {currentUser && (
+                <button
+                  onClick={() => {
+                    playInteractionTone(650, 0.08, 'sine');
+                    setSearchQuery(currentUser.name);
+                    setActivePost(null);
+                    setShowCreateForm(false);
+                    setMobileTab('feed');
+                  }}
+                  className={`w-full text-right p-2 rounded-xl text-xs transition-all flex items-center gap-2 border text-left ${
+                    searchQuery === currentUser.name
+                      ? 'bg-purple-500/10 border-purple-500/30 text-purple-300 font-bold'
+                      : 'bg-purple-950/20 hover:bg-purple-950/30 border-purple-500/15 text-purple-300/90'
+                  }`}
+                  title="تصفية المنشورات حسب أكوادي"
+                >
+                  <div className="relative shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-purple-500/20 border border-purple-500/35 flex items-center justify-center font-extrabold text-xs text-purple-300">
+                      {currentUser.name[0]?.toUpperCase() || 'ع'}
+                    </div>
+                    <span className="absolute bottom-0 left-0 w-2 h-2 rounded-full bg-emerald-500 border border-slate-900"></span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[10.5px] font-bold truncate text-purple-300">{currentUser.name} (أنت)</h4>
+                      <span className="text-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded px-1">نشط</span>
+                    </div>
+                    <p className="text-[9px] text-slate-450 truncate">{currentUser.tier === 'sovereign' ? 'عضوية سيادية 🏅' : 'عضو أكاديمي 🎓'}</p>
+                  </div>
+                </button>
+              )}
+
+              {[
+                { id: 'm-1', name: 'م. كريم عبد العزيز', role: 'عضو سيادي 🏅', avatar: 'ك', statusText: 'نشط الآن' },
+                { id: 'm-2', name: 'ليلى الهاشمي', role: 'عضو سيادي 🏅', avatar: 'ل', statusText: 'في المحرر' },
+                { id: 'm-3', name: 'د. طارق الحسين', role: 'عضو أكاديمي 🎓', avatar: 'ط', statusText: 'غائب' },
+                { id: 'm-4', name: 'سعد الحربي', role: 'عضو سيادي 🏅', avatar: 'س', statusText: 'يكتب كود أندرويد' },
+                { id: 'm-5', name: 'ياسين الكواكبي', role: 'مطور خبير 🌟', avatar: 'ي', statusText: 'مستعد للمساعدة' }
+              ].map(member => {
+                const isSelected = searchQuery === member.name;
+                const isOnline = member.statusText !== 'غائب';
+                return (
+                  <button
+                    key={member.id}
+                    onClick={() => {
+                      playInteractionTone(550, 0.05, 'sine');
+                      setSearchQuery(member.name);
+                      setActivePost(null);
+                      setShowCreateForm(false);
+                      setMobileTab('feed');
+                    }}
+                    className={`w-full text-right p-2 rounded-xl text-xs transition-all flex items-center gap-2 border ${
+                      isSelected
+                        ? 'bg-purple-500/10 border-purple-500/30 text-purple-300 font-bold'
+                        : 'bg-slate-900/40 hover:bg-slate-900/60 border-slate-850/60 text-slate-400'
+                    }`}
+                    title={`تصفية المنشورات بواسطة ${member.name}`}
+                  >
+                    <div className="relative shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-300">
+                        {member.avatar}
+                      </div>
+                      <span className={`absolute bottom-0 left-0 w-2 h-2 rounded-full border border-slate-900 ${
+                        isOnline ? 'bg-emerald-500' : 'bg-slate-500'
+                      }`}></span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h4 className={`text-[10.5px] font-bold truncate ${isSelected ? 'text-purple-300' : 'text-slate-300'}`}>{member.name}</h4>
+                        <span className={`text-[8px] rounded px-1 ${
+                          isOnline ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-500'
+                        }`}>{member.statusText}</span>
+                      </div>
+                      <p className="text-[9px] text-slate-500 truncate">{member.role}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  playInteractionTone(400, 0.05, 'sine');
+                  setSearchQuery('');
+                }}
+                className="w-full py-1 rounded-lg border border-slate-800 hover:border-slate-700 hover:bg-slate-900/30 text-[10px] text-slate-400 transition-all text-center"
+              >
+                ✕ إلغاء تصفية الأعضاء
+              </button>
+            )}
           </div>
 
         </aside>

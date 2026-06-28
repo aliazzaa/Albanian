@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Layers, Zap, Book, Download, FolderKanban, Smartphone, GraduationCap, User, Sparkles, MessageSquare } from 'lucide-react';
+import { BookOpen, Layers, Zap, Book, Download, FolderKanban, Smartphone, GraduationCap, User, Sparkles, MessageSquare, Terminal, Grid } from 'lucide-react';
 import { EXAMPLES, SYNTAX_MAP } from '../constants';
 
 interface SidebarProps {
@@ -14,6 +14,8 @@ interface SidebarProps {
   onOpenAcademy: () => void;
   onOpenAuth?: () => void;
   onOpenCommunity?: () => void;
+  onOpenEnvChecker?: () => void;
+  onOpenLibraryManager?: () => void;
   currentUser?: { name: string; email: string; tier: string } | null;
 }
 
@@ -28,6 +30,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onOpenAcademy,
   onOpenAuth,
   onOpenCommunity,
+  onOpenEnvChecker,
+  onOpenLibraryManager,
   currentUser
 }) => {
 
@@ -170,6 +174,32 @@ const Sidebar: React.FC<SidebarProps> = ({
                 >
                   <MessageSquare size={20} className="text-purple-400 animate-pulse" />
                   <span className="font-black">مجتمع المشتركين 💬</span>
+                </button>
+
+                <button 
+                  onClick={() => {
+                    if (onOpenLibraryManager) onOpenLibraryManager();
+                    if (window.innerWidth < 1024) toggle();
+                  }}
+                  className="w-full flex items-center gap-2 bg-gradient-to-l from-blue-950/40 to-indigo-950/40 hover:from-blue-900/40 hover:to-indigo-900/40 text-blue-300 border border-blue-900/50 p-3 rounded-lg transition-all shadow-md shadow-blue-950/15"
+                  title="استعراض وتثبيت مكتبات إضافية للغة البيان من المستودع المركزي"
+                  id="sidebar-library-manager-btn"
+                >
+                  <Grid size={20} className="text-blue-400 animate-pulse" />
+                  <span className="font-extrabold">مستودع المكتبات 📦</span>
+                </button>
+
+                <button 
+                  onClick={() => {
+                    if (onOpenEnvChecker) onOpenEnvChecker();
+                    if (window.innerWidth < 1024) toggle();
+                  }}
+                  className="w-full flex items-center gap-2 bg-gradient-to-l from-emerald-950/40 to-teal-950/40 hover:from-emerald-900/40 hover:to-teal-900/40 text-emerald-300 border border-emerald-800/50 p-3 rounded-lg transition-all shadow-md shadow-emerald-950/15"
+                  title="فحص بيئة تشغيل النظام المحلي والتحقق من جافا ونود"
+                  id="sidebar-env-checker-btn"
+                >
+                  <Terminal size={20} className="text-emerald-400 animate-pulse" />
+                  <span className="font-extrabold">فحص بيئة التشغيل 🛠️</span>
                 </button>
 
                 <button 

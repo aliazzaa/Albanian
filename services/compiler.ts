@@ -293,6 +293,17 @@ export class AlBayanCompiler {
     js = js.replace(/(أرسم|رسم)\.نص\((.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_graphics_text($2, $3, $4)');
     js = js.replace(/(أرسم|رسم)\.مسح\(\)/g, 'await __sys_graphics_clear()');
     
+    // BayanPhysics / الفيزياء_والحركة SDK Translation
+    js = js.replace(/(الفيزياء_والحركة|الفيزياء|BayanPhysics)\.جاذبية\((.*?)\)/g, 'await __sys_physics_set_gravity($2)');
+    js = js.replace(/(الفيزياء_والحركة|الفيزياء|BayanPhysics)\.ارتداد\((.*?)\)/g, 'await __sys_physics_set_restitution($2)');
+    js = js.replace(/(الفيزياء_والحركة|الفيزياء|BayanPhysics)\.احتكاك\((.*?)\)/g, 'await __sys_physics_set_friction($2)');
+    js = js.replace(/(الفيزياء_والحركة|الفيزياء|BayanPhysics)\.إضافة_جسم\((.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_physics_add_body($2, $3, $4, $5, $6, $7, $8, $9, $10)');
+    js = js.replace(/(الفيزياء_والحركة|الفيزياء|BayanPhysics)\.إضافة_جسم\((.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_physics_add_body($2, $3, $4, $5, $6, 0, 0, $7, $8)');
+    js = js.replace(/(الفيزياء_والحركة|الفيزياء|BayanPhysics)\.إضافة_جسم\((.*?),\s*(.*?),\s*(.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_physics_add_body($2, $3, $4, $5, $6, 0, 0, "#10b981", 0.8)');
+    js = js.replace(/(الفيزياء_والحركة|الفيزياء|BayanPhysics)\.سرعة\((.*?),\s*(.*?),\s*(.*?)\)/g, 'await __sys_physics_set_velocity($2, $3, $4)');
+    js = js.replace(/(الفيزياء_والحركة|الفيزياء|BayanPhysics)\.بدء_المحاكاة\(\)/g, 'await __sys_physics_start()');
+    js = js.replace(/(الفيزياء_والحركة|الفيزياء|BayanPhysics)\.إعادة_تعيين\(\)/g, 'await __sys_physics_reset()');
+    
     // Future-Android Lightweight Quantum, AI & self-cleaning rules
     js = js.replace(/أندرويد\.محرك_كمومي\((.*?)\)/g, 'await __sys_android_future_quantum($1)');
     js = js.replace(/أندرويد\.ذكاء_سحابي_دمج\((.*?)\)/g, 'await __sys_android_future_ai($1)');

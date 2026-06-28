@@ -6,6 +6,7 @@ import {
   Trash2, Copy, Check, Database, Music, Volume2, VolumeX, Zap, Sparkles, Brain, Cpu, Terminal, Clock, Activity, AlertTriangle
 } from 'lucide-react';
 import { GraphicalOutput } from './GraphicalOutput';
+import { PhysicsVisualizer } from './PhysicsVisualizer';
 
 interface OutputProps {
   result: ExecutionResult | null;
@@ -671,6 +672,13 @@ const Output: React.FC<OutputProps> = ({ result, isLoading }) => {
         {result?.generatedGraphics && !isCleared && (
             <div className="my-4">
                 <GraphicalOutput graphics={result.generatedGraphics} />
+            </div>
+        )}
+
+        {/* Render Generated Physics Simulation (BayanPhysics Engine) */}
+        {result?.generatedPhysics && !isCleared && (
+            <div className="my-4">
+                <PhysicsVisualizer physics={result.generatedPhysics} />
             </div>
         )}
 

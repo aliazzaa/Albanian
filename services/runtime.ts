@@ -99,6 +99,12 @@ export const runAlBayanCode = async (
   let currentAndroidApp: any = null;
   let currentScreen: string = "الرئيسية";
 
+  let physicsGravity = 9.8;
+  let physicsFriction = 0.02;
+  let physicsRestitution = 0.8;
+  const physicsBodies: any[] = [];
+  let physicsActive = false;
+
   // Sandbox Environment with Standard Library
   const env = {
     // 0. Standard Library
@@ -972,6 +978,73 @@ export const runAlBayanCode = async (
         logs.push(`🧹 [لوحة الرسم] مسح لوحة الرسم البياني بالكامل.`);
     },
 
+    // BayanPhysics Hook Definitions
+    __sys_physics_set_gravity: async (g: number) => {
+        physicsGravity = Number(g);
+        logs.push(`⚙️ [الفيزياء والجاذبية] تم تعيين قيمة جاذبية البيئة الحالية: ${physicsGravity} م/ث²`);
+    },
+    __sys_physics_set_restitution: async (r: number) => {
+        physicsRestitution = Number(r);
+        logs.push(`⚙️ [الفيزياء والجاذبية] تم تعيين معامل الارتداد الافتراضي للأجسام: ${physicsRestitution}`);
+    },
+    __sys_physics_set_friction: async (f: number) => {
+        physicsFriction = Number(f);
+        logs.push(`⚙️ [الفيزياء والجاذبية] تم تعيين معامل مقاومة الهواء/الاحتكاك الافتراضي: ${physicsFriction}`);
+    },
+    __sys_physics_add_body: async (id: string, type: string, x: number, y: number, size: number, vx?: number, vy?: number, color?: string, restitution?: number) => {
+        const idStr = String(id);
+        const normType = (type === 'دائرة' || type === 'circle') ? 'circle' : 'rect';
+        const parsedX = Number(x);
+        const parsedY = Number(y);
+        const parsedSize = Number(size);
+        const normVx = vx !== undefined ? Number(vx) : 0;
+        const normVy = vy !== undefined ? Number(vy) : 0;
+        const normColor = color ? String(color) : '#10b981';
+        const normRest = restitution !== undefined ? Number(restitution) : physicsRestitution;
+        
+        const body: any = {
+            id: idStr,
+            type: normType,
+            x: parsedX,
+            y: parsedY,
+            vx: normVx,
+            vy: normVy,
+            mass: normType === 'circle' ? Math.PI * parsedSize * parsedSize : parsedSize * parsedSize,
+            color: normColor,
+            restitution: normRest
+        };
+        
+        if (normType === 'circle') {
+            body.radius = parsedSize;
+        } else {
+            body.width = parsedSize;
+            body.height = parsedSize;
+        }
+        
+        physicsBodies.push(body);
+        logs.push(`⚙️ [الفيزياء والجاذبية] إضافة جسم جديد [${idStr}] من النوع (${normType === 'circle' ? 'دائرة' : 'مستطيل'}) عند الإحداثي (${parsedX}, ${parsedY}) بأبعاد/نصف قطر (${parsedSize})، سرعة مبدئية (${normVx}, ${normVy}) ولون ${normColor}`);
+    },
+    __sys_physics_set_velocity: async (id: string, vx: number, vy: number) => {
+        const idStr = String(id);
+        const body = physicsBodies.find(b => b.id === idStr);
+        if (body) {
+            body.vx = Number(vx);
+            body.vy = Number(vy);
+            logs.push(`⚙️ [الفيزياء والجاذبية] تعديل سرعة الكائن [${idStr}] إلى (${vx}, ${vy})`);
+        } else {
+            logs.push(`⚠️ [الفيزياء والجاذبية] تحذير: الكائن [${idStr}] غير موجود لتعديل سرعته.`);
+        }
+    },
+    __sys_physics_start: async () => {
+        physicsActive = true;
+        logs.push(`🚀 [الفيزياء والجاذبية] بدء تشغيل محاكاة القوانين الفيزيائية لجميع الكائنات الحالية!`);
+    },
+    __sys_physics_reset: async () => {
+        physicsBodies.length = 0;
+        physicsActive = false;
+        logs.push(`🧹 [الفيزياء والجاذبية] إعادة تعيين ومسح جميع الكائنات الفيزيائية الجارية.`);
+    },
+
     // 7. External Libraries Loader
     __sys_import: async (libIdentifier: string) => {
         const libConfig: LibraryConfig = KNOWN_LIBRARIES[libIdentifier] || { url: libIdentifier };
@@ -1059,6 +1132,13 @@ export const runAlBayanCode = async (
             shapes: graphicsShapes,
             chart: graphicsChart,
             canvasActive
+        } : undefined,
+        generatedPhysics: physicsActive ? {
+            gravity: physicsGravity,
+            friction: physicsFriction,
+            restitution: physicsRestitution,
+            bodies: physicsBodies,
+            isRunning: true
         } : undefined
     };
 
@@ -1071,6 +1151,13 @@ export const runAlBayanCode = async (
             shapes: graphicsShapes,
             chart: graphicsChart,
             canvasActive
+        } : undefined,
+        generatedPhysics: physicsActive ? {
+            gravity: physicsGravity,
+            friction: physicsFriction,
+            restitution: physicsRestitution,
+            bodies: physicsBodies,
+            isRunning: true
         } : undefined
     };
   }

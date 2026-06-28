@@ -49,6 +49,29 @@ export interface GraphicalChart {
   title?: string;
 }
 
+export interface PhysicsBody {
+  id: string;
+  type: 'circle' | 'rect';
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius?: number;
+  width?: number;
+  height?: number;
+  mass: number;
+  color: string;
+  restitution: number;
+}
+
+export interface PhysicsSimulationResult {
+  gravity: number;
+  friction: number;
+  restitution: number;
+  bodies: PhysicsBody[];
+  isRunning: boolean;
+}
+
 export interface ExecutionResult {
   output: string[];
   generatedImages?: string[]; // Base64 strings
@@ -61,6 +84,7 @@ export interface ExecutionResult {
     chart?: GraphicalChart;
     canvasActive: boolean;
   };
+  generatedPhysics?: PhysicsSimulationResult; // For simulated physics laws and mechanics
   error?: string;
 }
 

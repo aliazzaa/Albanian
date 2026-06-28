@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Code2, FileJson, Menu, Layers, FileCode, FileText, Bug, Puzzle, Globe, Square, Sparkles, Cpu, Brain, ChevronDown, Terminal, Wand2, AlertTriangle, AlertCircle, CheckCircle, Info, MessageSquare } from 'lucide-react';
+import { Play, Code2, FileJson, Menu, Layers, FileCode, FileText, Bug, Puzzle, Globe, Square, Sparkles, Cpu, Brain, ChevronDown, Terminal, Wand2, AlertTriangle, AlertCircle, CheckCircle, Info, MessageSquare, Grid } from 'lucide-react';
 import CodeEditor from './components/CodeEditor';
 import Output from './components/Output';
 import AICopilot from './components/AICopilot';
@@ -9,6 +9,8 @@ import Documentation from './components/Documentation';
 import Debugger from './components/Debugger';
 import ProjectModal from './components/ProjectModal';
 import ExtensionsModal from './components/ExtensionsModal';
+import { EnvironmentChecker } from './components/EnvironmentChecker';
+import { BayanLibraryManager } from './components/BayanLibraryManager';
 import { AuthModal } from './components/AuthModal';
 import { AndroidTemplatesLibrary } from './components/AndroidTemplatesLibrary';
 import { BayanToAndroidOptimizer } from './components/BayanToAndroidOptimizer';
@@ -42,6 +44,8 @@ function App() {
   const [isCommunityOpen, setIsCommunityOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isExtModalOpen, setIsExtModalOpen] = useState(false);
+  const [isEnvCheckerOpen, setIsEnvCheckerOpen] = useState(false);
+  const [isLibraryManagerOpen, setIsLibraryManagerOpen] = useState(false);
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isOptimizerOpen, setIsOptimizerOpen] = useState(false);
   const [isAIToolkitOpen, setIsAIToolkitOpen] = useState(false);
@@ -397,7 +401,7 @@ function App() {
     });
   };
 
-  const isAnyModalOpen = isDocsOpen || isAcademyOpen || isCommunityOpen || isProjectModalOpen || isExtModalOpen || isTemplatesOpen || isOptimizerOpen || isAIToolkitOpen || isAppGeneratorOpen || isAuthOpen || isSidebarOpen;
+  const isAnyModalOpen = isDocsOpen || isAcademyOpen || isCommunityOpen || isProjectModalOpen || isExtModalOpen || isEnvCheckerOpen || isLibraryManagerOpen || isTemplatesOpen || isOptimizerOpen || isAIToolkitOpen || isAppGeneratorOpen || isAuthOpen || isSidebarOpen;
 
   const handlePrintPDF = () => {
      window.print();
@@ -417,6 +421,8 @@ function App() {
         onOpenAcademy={() => setIsAcademyOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenCommunity={() => setIsCommunityOpen(true)}
+        onOpenEnvChecker={() => setIsEnvCheckerOpen(true)}
+        onOpenLibraryManager={() => setIsLibraryManagerOpen(true)}
         currentUser={user}
       />
 
@@ -687,6 +693,30 @@ function App() {
                     >
                       <span>معزز الأداء وتقليل الوزن</span>
                       <Cpu size={15} className="text-amber-400" />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsEnvCheckerOpen(true);
+                        setIsToolsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs text-emerald-400 hover:bg-emerald-500/10 transition-colors text-right font-bold border-t border-slate-800/80 pt-2"
+                      id="mobile-tool-env-checker"
+                    >
+                      <span>فحص بيئة التشغيل 🛠️</span>
+                      <Terminal size={15} className="text-emerald-400 animate-pulse" />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsLibraryManagerOpen(true);
+                        setIsToolsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs text-blue-400 hover:bg-blue-500/10 transition-colors text-right font-bold border-t border-slate-800/80 pt-2"
+                      id="mobile-tool-library-manager"
+                    >
+                      <span>مستودع المكتبات 📦</span>
+                      <Grid size={15} className="text-blue-400 animate-pulse" />
                     </button>
                   </div>
                 </>
@@ -1182,6 +1212,14 @@ function App() {
           setIsAcademyOpen(false);
           setMode(CodeMode.EDITOR);
         }}
+        onOpenDocs={() => {
+          setIsAcademyOpen(false);
+          setIsDocsOpen(true);
+        }}
+        onOpenCommunity={() => {
+          setIsAcademyOpen(false);
+          setIsCommunityOpen(true);
+        }}
       />
       
       <ProjectModal 
@@ -1248,6 +1286,17 @@ function App() {
         }}
       />
 
+      <EnvironmentChecker 
+        isOpen={isEnvCheckerOpen}
+        onClose={() => setIsEnvCheckerOpen(false)}
+      />
+
+      <BayanLibraryManager 
+        isOpen={isLibraryManagerOpen}
+        onClose={() => setIsLibraryManagerOpen(false)}
+        onLoadExample={setCode}
+      />
+
       <AuthModal 
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
@@ -1264,6 +1313,14 @@ function App() {
         onOpenAuth={() => {
           setIsCommunityOpen(false);
           setIsAuthOpen(true);
+        }}
+        onOpenAcademy={() => {
+          setIsCommunityOpen(false);
+          setIsAcademyOpen(true);
+        }}
+        onOpenDocs={() => {
+          setIsCommunityOpen(false);
+          setIsDocsOpen(true);
         }}
       />
     </div>
